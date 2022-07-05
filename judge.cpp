@@ -45,7 +45,12 @@ inline int randint(int low, int high)
 //     7: user1的王城
 //     8: user2的王城
 // move: list
-// [i,j,w,d]
+// [i,j,d]
+// winner:
+// 0: user1 
+// 1: user2
+// 2: draw
+// -1: unknown
 class Game
 {
 public:
@@ -56,12 +61,15 @@ public:
     int mapVision2[2][SquareHeight][SquareWidth];
 
     bool finish;
-    int winner;
+    int winner,errorcode;
     int currenttime;
+    string errormessage;
     Game(int height_ = SquareHeight, int width_ = SquareWidth)
     {
         height = height_;
         width = width_;
+        winner = -1;
+        currenttime = 0;
     }
     void initMap();
     bool generalsCheck();
@@ -71,10 +79,12 @@ public:
     void fight(int &, int &);
     void fight(int &, int &, int &);
     void scheduleAdd();
-    int move(int[4], int[4], bool);
+    int move(int[3], int[3], bool);
     int move(Json::Value, Json::Value, bool);
     void mapWithFog();
     void loadMap(Json::Value);
+    void printFinish();
+    void printError();
 };
 
 bool Game::generalsCheck()
@@ -193,20 +203,23 @@ void Game::scheduleAdd()
     }
 }
 
-int Game::move(int move1[4], int move2[4],bool check=false)
+int Game::move(int move1[3], int move2[3],bool check=false)
 {
     /*  return 3 OK
         return 0 user1 error
         return 1 user2 error
         return 2 both error
     */
-    int to1[] = {move1[0] + movei[move1[3]], move1[1] + movej[move1[3]]};
-    int to2[] = {move2[0] + movei[move2[3]], move2[1] + movej[move2[3]]};
+    int to1[] = {move1[0] + movei[move1[2]], move1[1] + movej[move1[2]]};
+    int to2[] = {move2[0] + movei[move2[2]], move2[1] + movej[move2[2]]};
     int *moveAll[2] = {move1, move2};
     bool legal1 = true, legal2 = true;
     if (check) {
-        
-        // 起始位置非法 TODO: 越界违法
+        // 非法越界
+        if (to1[0] <0 || to1[0]>=height || to1[1]<0 || to1[1]>width) legal1 = false;
+        if (to2[0] <0 || to2[0]>=height || to2[1]<0 || to2[1]>width) legal2 = false;
+
+        // 起始位置非法 
         if (!((map[1][move1[0]][move1[1]] == 3) ||
             (map[1][move1[0]][move1[1]] == 5) ||
             (map[1][move1[0]][move1[1]] == 7)))
@@ -215,15 +228,10 @@ int Game::move(int move1[4], int move2[4],bool check=false)
             (map[1][move2[0]][move2[1]] == 6) ||
             (map[1][move2[0]][move2[1]] == 8)))
             legal2 = false;
-        // 非法数量
-        if (move1[2] <= 0)
-            legal1 = false;
-        if (move2[2] <= 0)
-            legal2 = false;
         // 数量不够
-        if (move1[2] >= map[0][move1[0]][move1[1]])
+        if (map[0][move1[0]][move1[1]] <= 1)
             legal1 = false;
-        if (move2[2] >= map[0][move2[0]][move2[1]])
+        if (map[0][move2[0]][move2[1]] <= 1)
             legal2 = false;
         // 移动到山上
         if (map[1][to1[0]][to1[1]] == 1)
@@ -231,24 +239,25 @@ int Game::move(int move1[4], int move2[4],bool check=false)
         if (map[1][to2[0]][to2[1]] == 1)
             legal2 = false;
     }
-    if (!legal1 && !legal2) return 2;
-    if (!legal1) return 0;
-    if (!legal2) return 1;
-
-    map[0][move1[0]][move1[1]] -= move1[2];
-    map[0][move2[0]][move2[1]] -= move2[2];
+    if (!legal1 && !legal2) {errorcode=2; return 2;}
+    if (!legal1)  {errorcode = 0; return 0;}
+    if (!legal2)  {errorcode = 1; return 1;}
+    // 双方都先把兵力调出，再一起考虑放入的问题
+    map[0][move1[0]][move1[1]] = 1;
+    map[0][move2[0]][move2[1]] = 1;
     if (!(
             to1[0] == to2[0] && to1[1] == to2[1] && map[1][to1[0]][to1[1]] != 0))
     {
         fouser {
             int *move = moveAll[user];
-            int toi = move[0] + movei[move[3]], toj = move[1] + movej[move[3]], moveN = move[3];
+            int toi = move[0] + movei[move[2]], toj = move[1] + movej[move[2]], 
+                moveN = map[0][move[0]][move[1]]-1;
             int toN, type = map[0][toi][toj], map[1][toi][toj];
             int r1 = toN, r2 = moveN;
             fight(r1, r2);
             int maxr = r1 + r2;
             bool occupy = r2 > 0;
-            if (type == 0) {                                // free square
+            if (type == 0) {   // free square
                 map[1][toi][toj] = 3 + user; // 3:user1 4:user2
                 map[0][toi][toj] = moveN;
             }
@@ -288,8 +297,8 @@ int Game::move(int move1[4], int move2[4],bool check=false)
     //     ，应当认为是未被敌方占据，仍为己方所有，如果把它视为普通情况，可能会被判断为已被占据
     // 若为王城被进攻的情况，让增援部队先加入，再让对方进攻
     else {
-        int toi = move1[0], toj = move1[1];
-        int moveN1, moveN2 = move1[3], move2[3];
+        int toi = to1[0], toj = to1[1];
+        int moveN1 = map[0][move1[0]][move1[1]]-1,moveN2=map[0][move2[0]][move2[1]]-1;
         int moveN[] = {moveN1, moveN2};
         int toN, type = map[0][toi][toj], map[1][toi][toj];
         int r1 = toN, r2 = moveN1, r3 = moveN2;
@@ -313,15 +322,14 @@ int Game::move(int move1[4], int move2[4],bool check=false)
                 finish = true;
                 winner = 1-belong;
             }
-                
         }
     }
     return 3;
 }
 
 int Game::move(Json::Value move1_, Json::Value move2_,bool check=false) {
-    int move1[4],move2[4];
-    foi(4) {
+    int move1[3],move2[3];
+    foi(3) {
         move1[i] = move1_[i].asInt();
     }
     return move(move1,move2,check);
@@ -358,6 +366,52 @@ void Game::loadMap(Json::Value value) {
         map[k][i][j] = value["map"][k][i][j].asInt();
     foi(2) foj(2)
         generals[i][j] = value["generals"][i][j].asInt();
+}
+
+void Game::printError() {
+    // errorcode: 
+    // 1 user1's error
+    // 2 user2's error
+    // 3 both error
+    int score[2] ;
+    if (errorcode == 1) {
+        score[0] = -5; score[1] = 5;
+    } else if (errorcode == 2) {
+        score[0] = 5; score[1] = -5;
+    } else if (errorcode == 3) {
+        score[0] = -5; score[1] = -5;
+    }
+	Json::Value output;
+    output["command"] = "finish";
+    output["content"]["0"] = "error";
+    output["content"]["1"] = "error";
+    // display: TODO:
+
+	Json::FastWriter writer;
+	cout << writer.write(output) << endl;
+}
+
+void Game::printFinish() {
+    // winner:
+    // 0: user1 
+    // 1: user2
+    // 2: draw
+    // -1: unknown
+    int score[2] ;
+    if (winner == 0) {
+        score[0] = 10; score[1] = -10;
+    } else if (winner == 1) {
+        score[0] = -10; score[1] = 10;
+    } else if (winner == 2) {
+        score[0] = -1; score[1] = -1;
+    }
+	Json::Value output;
+    output["command"] = "finish";
+    output["content"]["0"] = "finish";
+    output["content"]["1"] = "finish";
+    // display TODO:
+	Json::FastWriter writer;
+	cout << writer.write(output) << endl;
 }
 
 int main() {
@@ -398,6 +452,8 @@ int main() {
                  legalAns = game.move(opt1,opt2,true);
             else 
                 game.move(opt1,opt2);
+            ++game.currenttime ;
+            game.scheduleAdd();
         }
         if (legalAns == 3) {
             if (!game.finish ) {
@@ -412,13 +468,18 @@ int main() {
                 }
                 // display TODO:
             } else {
-
+                game.printFinish();
+                return 0;
             }
         }
         else {
-            // error TODO:
+            game.printError();
+            return 0;
         }
 
 
     }
+	Json::FastWriter writer;
+	cout << writer.write(output) << endl;
+    return 0;
 }
