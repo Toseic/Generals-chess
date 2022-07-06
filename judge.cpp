@@ -4,7 +4,7 @@
 #include <cstring>
 #include <ctime>
 #include <string>
-#include "ignore/kingz/jsoncpp/json.h"
+#include "jsoncpp/json.h"
 
 #define foi(n) for (int i = 0; i < n; ++i)
 #define foj(n) for (int j = 0; j < n; ++j)
@@ -70,6 +70,9 @@ public:
         width = width_;
         winner = -1;
         currenttime = 0;
+        memset(map,0,sizeof(map));
+        memset(mapVision1,0,sizeof(mapVision1));
+        memset(mapVision2,0,sizeof(mapVision2));
     }
     void initMap();
     bool generalsCheck();
@@ -139,6 +142,7 @@ void Game::initMap()
     int *map1d = new int[area];
     while (true)
     {
+        srand((unsigned)time(NULL));
         generals[0][0] = randint(0, height - 1);
         generals[0][1] = randint(0, width - 1);
         generals[1][0] = randint(0, height - 1);
@@ -415,12 +419,16 @@ void Game::printFinish() {
 }
 
 int main() {
+	freopen("debug.in","r",stdin);
+	freopen("debug.json","w",stdout);
 	string str;
 	getline(cin, str);
 	Json::Reader reader;
 	Json::Value input,log, output;
 	reader.parse(str, input);
     Game game;
+
+
 
     log = input["log"];
     if (log.size() == 0) {
@@ -432,7 +440,7 @@ int main() {
             output["content"]["0"]["map"][k][i][j] = game.mapVision1[k][i][j];
             output["content"]["1"]["map"][k][i][j] = game.mapVision2[k][i][j];
             
-            output["initdata"][k][i][j] = game.map[k][i][j];
+            output["initdata"]["map"][k][i][j] = game.map[k][i][j];
         }
         foi(2) foj(2) 
             output["initdata"]["generals"][i][j] = game.generals[i][j];

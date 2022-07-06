@@ -3,3 +3,7 @@
 judge
 *debug*
 *setting*
+jsoncpp.cpp
+/jsoncpp/
+/*DSYM*/
+/.vscode/
