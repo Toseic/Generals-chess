@@ -17,6 +17,17 @@ const int SquareWidth = 16;
 int InitGeneralsNum = 4;
 int movei[] = {-1, 1, 0, 0, 0};
 int movej[] = {0, 0, -1, 1, 0};
+int square9i[9] = {
+    -1,-1,-1,
+    0 ,0 ,0,
+    1 ,1 ,1
+};
+int square9j[9] = {
+    -1,0,1,
+    -1,0,1,
+    -1,0,1,
+
+};
 int errorPerson = -1;
 
 inline int randint(int low, int high)
@@ -59,6 +70,9 @@ public:
     int map[2][SquareHeight][SquareWidth];
     int mapVision1[2][SquareHeight][SquareWidth];
     int mapVision2[2][SquareHeight][SquareWidth];
+    int fogDisplay1[SquareHeight][SquareWidth];
+    int fogDisplay2[SquareHeight][SquareWidth];
+
 
     bool finish;
     int winner,errorcode;
@@ -340,8 +354,12 @@ int Game::move(Json::Value move1_, Json::Value move2_,bool check=false) {
 }
 
 void Game::mapWithFog() {
-    memset(mapVision1,0,sizeof(mapVision1));
-    memset(mapVision2,0,sizeof(mapVision2));
+    memset(mapVision1,-1,sizeof(mapVision1));
+    memset(mapVision2,-1,sizeof(mapVision2));
+    foi(height) foj(width) {
+        fogDisplay1[i][j] = 1;
+        fogDisplay2[i][j] = 1;
+    }
     foi(height) foj(width) {
         int type = map[1][i][j];
         if (type == 1) {
@@ -349,16 +367,25 @@ void Game::mapWithFog() {
             mapVision1[1][i][j] = map[1][i][j];
         } else if (type >= 3) { //被占据的地方
             if (type % 2 == 1) { // 被user1占据
-                for (int i1=0;i1<5;++i1) {
-                    int newi = i + movei[i1], newj = j + movej[i1];
-                        mapVision1[0][i][j] = map[0][i][j];
-                        mapVision1[1][i][j] = map[1][i][j];
+                for (int i1=0;i1<9;++i1) {
+                    int newi = i + square9i[i1], newj = j + square9j[i1];
+                        if (newi>=0 && newi<SquareHeight && newj>=0 && newj<SquareWidth) {
+                            mapVision1[0][newi][newj] = map[0][newi][newj];
+                            mapVision1[1][newi][newj] = map[1][newi][newj];    
+                            fogDisplay1[newi][newj] = 0;
+
+                        }
+
                 }
             } else {
-                for (int i1=0;i1<5;++i1) {
+                for (int i1=0;i1<9;++i1) {
                     int newi = i + movei[i1], newj = j + movej[i1];
-                        mapVision2[0][i][j] = map[0][i][j];
-                        mapVision2[1][i][j] = map[1][i][j];
+                        if (newi>=0 && newi<SquareHeight && newj>=0 && newj<SquareWidth) {
+                            mapVision2[0][newi][newj] = map[0][newi][newj];
+                            mapVision2[1][newi][newj] = map[1][newi][newj];  
+                            fogDisplay2[newi][newj] = 0;
+
+                        }
                 }
             }
         }
@@ -436,11 +463,20 @@ int main() {
         game.initMap();
         game.mapWithFog();
         output["command"] = "request";
+        output["initdata"]["height"] = game.height;
+        output["initdata"]["width"] = game.width;
+        output["display"]["status"] = "opening";
         fok(2) foi(game.height) foj(game.width) {
             output["content"]["0"]["map"][k][i][j] = game.mapVision1[k][i][j];
             output["content"]["1"]["map"][k][i][j] = game.mapVision2[k][i][j];
+            output["display"]["0"]["map"][k][i][j] = game.mapVision1[k][i][j];
+            output["display"]["1"]["map"][k][i][j] = game.mapVision1[k][i][j];
             
             output["initdata"]["map"][k][i][j] = game.map[k][i][j];
+        }
+        foi(game.height) foj(game.width) {
+            output["display"]["0"]["fog"][i][j] = game.fogDisplay1[i][j];
+            output["display"]["1"]["fog"][i][j] = game.fogDisplay2[i][j];
         }
         foi(2) foj(2) 
             output["initdata"]["generals"][i][j] = game.generals[i][j];
