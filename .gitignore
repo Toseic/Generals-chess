@@ -12,5 +12,6 @@ deploy
 /runfile/*
 *engine*
 /botzone/runfile/
+/bot/bot
 
 */*dSYM*/*

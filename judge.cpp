@@ -97,6 +97,7 @@ public:
     void fight(int &, int &, int &);
     void scheduleAdd();
     int move(int[3], int[3], bool);
+    void move(int[3], int user);
     int move(Json::Value, Json::Value, bool);
     void mapWithFog();
     void loadMap(Json::Value);
@@ -221,6 +222,49 @@ void Game::scheduleAdd()
     }
 }
 
+void Game::move(int move[3], int user) {
+	int toi = move[0] + movei[move[2]], toj = move[1] + movej[move[2]], 
+		moveN = map[0][move[0]][move[1]]-1;
+	int toN, type = map[0][toi][toj], map[1][toi][toj];
+	int r1 = toN, r2 = moveN;
+	fight(r1, r2);
+	int maxr = r1 + r2;
+	bool occupy = r2 > 0;
+	if (type == 0) {   // free square
+		map[1][toi][toj] = 3 + user; // 3:user1 4:user2
+		map[0][toi][toj] = moveN;
+	}
+	else if (type == 0) { // free city
+		map[0][toi][toj] = maxr;
+		// 只有当进攻的兵力有富余时才算占领了，剩余0不认为是占领
+		if (occupy)
+			map[1][toi][toj] = 5 + user;
+	}
+	else if (type == user + 3 || type == user + 5 || type == user + 7) {
+		// 己方的土地或者city或者王城
+		map[0][toi][toj] += moveN;
+	}
+	else if (type == 6 - user || type == 4 - user) {
+		//  敌方的city或者土地
+		map[0][toi][toj] = maxr;
+		if (occupy) {
+			if (user == 0)
+				--map[1][toi][toj];
+			else
+				++map[1][toi][toj];
+		}
+	}
+	else if (type == 8 - user) { // 敌方的王城
+		map[0][toi][toj] = maxr;
+		if (occupy) {
+			map[1][toi][toj] = 7 + user;
+			finish = true;
+			winner = user;
+		}
+	}
+}
+
+
 int Game::move(int move1[3], int move2[3],bool check=false)
 {
     /*  return 3 OK
@@ -228,85 +272,57 @@ int Game::move(int move1[3], int move2[3],bool check=false)
         return 1 user2 error
         return 2 both error
     */
+    
     int to1[] = {move1[0] + movei[move1[2]], move1[1] + movej[move1[2]]};
     int to2[] = {move2[0] + movei[move2[2]], move2[1] + movej[move2[2]]};
     int *moveAll[2] = {move1, move2};
     bool legal1 = true, legal2 = true;
+	bool user0Stay = move1[0] == -1 && move1[1] == -1 && move1[2] == -1;
+	bool user1Stay = move2[0] == -1 && move2[1] == -1 && move2[2] == -1;
     if (check) {
         // 非法越界
-        if (to1[0] <0 || to1[0]>=height || to1[1]<0 || to1[1]>width) legal1 = false;
-        if (to2[0] <0 || to2[0]>=height || to2[1]<0 || to2[1]>width) legal2 = false;
+        if (to1[0] <0 || to1[0]>=height || to1[1]<0 || to1[1]>width) 
+			legal1 = false;
+        if (to2[0] <0 || to2[0]>=height || to2[1]<0 || to2[1]>width) 
+			legal2 = false;
 
         // 起始位置非法 
-        if (!((map[1][move1[0]][move1[1]] == 3) ||
+        if (legal1 && !((map[1][move1[0]][move1[1]] == 3) ||
             (map[1][move1[0]][move1[1]] == 5) ||
             (map[1][move1[0]][move1[1]] == 7)))
             legal1 = false;
-        if (!((map[1][move2[0]][move2[1]] == 4) ||
+        if (legal2 && !((map[1][move2[0]][move2[1]] == 4) ||
             (map[1][move2[0]][move2[1]] == 6) ||
             (map[1][move2[0]][move2[1]] == 8)))
             legal2 = false;
         // 数量不够
-        if (map[0][move1[0]][move1[1]] <= 1)
+        if (legal1 && map[0][move1[0]][move1[1]] <= 1)
             legal1 = false;
-        if (map[0][move2[0]][move2[1]] <= 1)
+        if (legal2 && map[0][move2[0]][move2[1]] <= 1)
             legal2 = false;
         // 移动到山上
-        if (map[1][to1[0]][to1[1]] == 1)
+        if (legal1 && map[1][to1[0]][to1[1]] == 1)
             legal1 = false;
-        if (map[1][to2[0]][to2[1]] == 1)
+        if (legal2 && map[1][to2[0]][to2[1]] == 1)
             legal2 = false;
     }
+	// 若不移动，则为合法
+	if (user0Stay) legal1 = true; 
+	if (user1Stay) legal2 = true;
     if (!legal1 && !legal2) {errorcode=2; return 2;}
     if (!legal1)  {errorcode = 0; return 0;}
     if (!legal2)  {errorcode = 1; return 1;}
-    // 双方都先把兵力调出，再一起考虑放入的问题
-    map[0][move1[0]][move1[1]] = 1;
-    map[0][move2[0]][move2[1]] = 1;
+    // 若选择移动，则先把兵力调出，再考虑放入的问题
+    if (!user0Stay) map[0][move1[0]][move1[1]] = 1;
+    if (!user1Stay) map[0][move2[0]][move2[1]] = 1;
     if (!(
             to1[0] == to2[0] && to1[1] == to2[1] && map[1][to1[0]][to1[1]] != 0))
     {
         fouser {
-            int *move = moveAll[user];
-            int toi = move[0] + movei[move[2]], toj = move[1] + movej[move[2]], 
-                moveN = map[0][move[0]][move[1]]-1;
-            int toN, type = map[0][toi][toj], map[1][toi][toj];
-            int r1 = toN, r2 = moveN;
-            fight(r1, r2);
-            int maxr = r1 + r2;
-            bool occupy = r2 > 0;
-            if (type == 0) {   // free square
-                map[1][toi][toj] = 3 + user; // 3:user1 4:user2
-                map[0][toi][toj] = moveN;
-            }
-            else if (type == 0) { // free city
-                map[0][toi][toj] = maxr;
-                // 只有当进攻的兵力有富余时才算占领了，剩余0不认为是占领
-                if (occupy)
-                    map[1][toi][toj] = 5 + user;
-            }
-            else if (type == user + 3 || type == user + 5 || type == user + 7) {
-                // 己方的土地或者city或者王城
-                map[0][toi][toj] += moveN;
-            }
-            else if (type == 6 - user || type == 4 - user) {
-                //  敌方的city或者土地
-                map[0][toi][toj] = maxr;
-                if (occupy) {
-                    if (user == 0)
-                        --map[1][toi][toj];
-                    else
-                        ++map[1][toi][toj];
-                }
-            }
-            else if (type == 8 - user) { // 敌方的王城
-                map[0][toi][toj] = maxr;
-                if (occupy) {
-                    map[1][toi][toj] = 7 + user;
-                    finish = true;
-                    winner = user;
-                }
-            }
+            int *thismove = moveAll[user];
+			if (((user == 0) && user0Stay) || (user == 1) && user1Stay) 
+				continue;
+			move(thismove, user);
         }
     }
     // 当双方同时到达一块土地或者城市，以及某一方的王城时，需被额外考虑
@@ -454,7 +470,10 @@ int main() {
 	Json::Value input,log, output;
 	reader.parse(str, input);
     Game game;
-
+    output["content"]["0"]["size"][0] = SquareHeight;
+    output["content"]["0"]["size"][1] = SquareWidth;
+    output["content"]["1"]["size"][0] = SquareHeight;
+    output["content"]["1"]["size"][1] = SquareWidth;
     log = input["log"];
     if (log.size() == 0) {
         // display: TODO:
@@ -472,6 +491,8 @@ int main() {
             
             output["initdata"]["map"][k][i][j] = game.map[k][i][j];
         }
+
+
         foi(game.height) foj(game.width) {
             output["display"]["0"]["fog"][i][j] = game.fogDisplay1[i][j];
             output["display"]["1"]["fog"][i][j] = game.fogDisplay2[i][j];
