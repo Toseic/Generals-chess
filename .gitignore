@@ -5,12 +5,12 @@ deploy
 
 *debug*
 *setting*
-jsoncpp.cpp
-/jsoncpp/
+# jsoncpp.cpp
+# /jsoncpp/
 /*DSYM*/
 /.vscode/
 /runfile/*
 *engine*
 /botzone/runfile/
-*json*
+
 */*dSYM*/*
