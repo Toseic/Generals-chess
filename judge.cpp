@@ -446,16 +446,14 @@ void Game::printFinish() {
 }
 
 int main() {
-	freopen("debug.in","r",stdin);
-	freopen("debug.json","w",stdout);
+	// freopen("debug.in","r",stdin);
+	// freopen("debug.json","w",stdout);
 	string str;
 	getline(cin, str);
 	Json::Reader reader;
 	Json::Value input,log, output;
 	reader.parse(str, input);
     Game game;
-
-
 
     log = input["log"];
     if (log.size() == 0) {
@@ -483,7 +481,7 @@ int main() {
         foi(2) {
             output["content"]["0"]["generals"][i] = game.generals[0][i];
             output["content"]["1"]["generals"][i] = game.generals[1][i];
-        }
+        } // 位置替换 TODO:
     } else {
         game.loadMap(input["initdata"]);
         Json::Value opt1, opt2;

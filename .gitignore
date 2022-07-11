@@ -1,9 +1,16 @@
 /ignore/
 .DS_Store
 judge
+deploy
+
 *debug*
 *setting*
 jsoncpp.cpp
 /jsoncpp/
 /*DSYM*/
 /.vscode/
+/runfile/*
+*engine*
+/botzone/runfile/
+*json*
+*/*dSYM*/*
