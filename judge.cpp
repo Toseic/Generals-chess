@@ -84,6 +84,7 @@ public:
         width = width_;
         winner = -1;
         currenttime = 0;
+        finish = false;
         memset(map,0,sizeof(map));
         memset(mapVision1,0,sizeof(mapVision1));
         memset(mapVision2,0,sizeof(mapVision2));
@@ -316,7 +317,8 @@ int Game::move(int move1[3], int move2[3],bool check=false)
     if (!user0Stay) map[0][move1[0]][move1[1]] = 1;
     if (!user1Stay) map[0][move2[0]][move2[1]] = 1;
     if (!(
-            to1[0] == to2[0] && to1[1] == to2[1] && map[1][to1[0]][to1[1]] != 0))
+            to1[0] == to2[0] && to1[1] == to2[1] && 
+            map[1][to1[0]][to1[1]] != 0 && (!user0Stay) && (!user1Stay)))
     {
         fouser {
             int *thismove = moveAll[user];
@@ -365,6 +367,7 @@ int Game::move(Json::Value move1_, Json::Value move2_,bool check=false) {
     int move1[3],move2[3];
     foi(3) {
         move1[i] = move1_[i].asInt();
+        move2[i] = move2_[i].asInt();
     }
     return move(move1,move2,check);
 }
@@ -506,11 +509,11 @@ int main() {
     } else {
         game.loadMap(input["initdata"]);
         Json::Value opt1, opt2;
-        int inputSize = input.size();
+        int inputSize = input["log"].size();
         int legalAns ;
 		for (int i = 1; i < inputSize; i += 2) {
-			opt1 = input[i]["0"]["response"];
-			opt2 = input[i]["1"]["response"];
+			opt1 = input["log"][i]["0"]["response"];
+			opt2 = input["log"][i]["1"]["response"];
             if (i == inputSize-1)
                  legalAns = game.move(opt1,opt2,true);
             else 
@@ -521,6 +524,7 @@ int main() {
         if (legalAns == 3) {
             if (!game.finish ) {
                 output["command"] = "request";
+                game.mapWithFog();
                 fok(2) foi(game.height) foj(game.width) {
                     output["content"]["0"]["map"][k][i][j] = game.mapVision1[k][i][j];
                     output["content"]["1"]["map"][k][i][j] = game.mapVision2[k][i][j];
