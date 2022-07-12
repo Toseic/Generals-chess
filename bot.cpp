@@ -18,6 +18,7 @@ using namespace std;
 const int SquareHeight = 16;
 const int SquareWidth = 16;
 int InitGeneralsNum = 4;
+int moves[1100][3];
 int movei[] = {-1, 1, 0, 0, 0};
 int movej[] = {0, 0, -1, 1, 0};
 int square9i[9] = {
@@ -84,6 +85,8 @@ int main() {
 	reader.parse(str, input);
     Game game;
 
+    game.height = input["height"].asInt();
+    game.width = input["width"].asInt();
     game.currenttime = input["time"].asInt();
     fok(2) foi(SquareHeight) foj(SquareWidth) {
         game.map[k][i][j] = input["map"][k][i][j].asInt();
@@ -106,7 +109,17 @@ int main() {
         }
         historyTimestamp[i] = history["time"].asInt();
     }
-    
-    
-
+    int movenum = 0;
+    foi(game.height) foj(game.width){
+        fok(4){
+            int x = i + movei[k];
+            int y = j + movej[k];
+            if(x>=0&&x<game.height&&y>=0&&y<game.width&&game.map[1][x][y]==-1&&game.map[1][x][y]==0&&game.map[1][x][y]==2&&game.map[1][x][y]==4&&game.map[1][x][y]==6&&game.map[1][x][y]==8){
+                moves[movenum][0] = x, moves[movenum][1] = y, moves[movenum][3] = k;
+            }
+        }
+    }
+    int index = rand()%movenum;
+    cout << moves[index][0] << ' ' << moves[index][1] << ' ' << moves[index][2] << endl;
+    return 0;
 }
