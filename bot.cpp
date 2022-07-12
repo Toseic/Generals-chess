@@ -120,6 +120,11 @@ int main() {
         }
     }
     int index = rand()%movenum;
-    cout << moves[index][0] << ' ' << moves[index][1] << ' ' << moves[index][2] << endl;
+    Json::Value ret;
+    ret["output"].append(moves[index][0]);
+    ret["output"].append(moves[index][1]);
+    ret["output"].append(moves[index][2]);
+    Json::FastWriter writer;
+    cout << writer.write(ret) << endl;
     return 0;
 }
