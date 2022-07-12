@@ -2,7 +2,7 @@
 .DS_Store
 judge
 deploy
-
+*.exe
 *debug*
 *setting*
 # jsoncpp.cpp
