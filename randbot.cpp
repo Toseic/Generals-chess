@@ -125,6 +125,10 @@ int main()
         historyTimestamp[i] = history["time"].asInt();
     }
     int movenum = 0;
+    int lastmove[3];
+    if(historyNum>0)
+        foi(3)
+            lastmove[i] = input["history"]["list"][historyNum-1]["move"][i].asInt();
     foi(game.height) foj(game.width)
     {
         fok(4)
@@ -132,9 +136,10 @@ int main()
             int x = i + movei[k];
             int y = j + movej[k];
             if (x >= 0 && x < game.height && y >= 0 && y < game.width &&
-                game.map[1][x][y] == -1 && game.map[1][x][y] == 0 &&
-                game.map[1][x][y] == 2 && game.map[1][x][y] == 4 &&
-                game.map[1][x][y] == 6 && game.map[1][x][y] == 8)
+                (i != lastmove[0] || j != lastmove[1] || k != lastmove[2]) &&
+                (game.map[1][x][y] == -1 || game.map[1][x][y] == 0 ||
+                game.map[1][x][y] == 2 || game.map[1][x][y] == 4 ||
+                game.map[1][x][y] == 6 || game.map[1][x][y] == 8))
             {
                 moves[movenum][0] = i, moves[movenum][1] = j, moves[movenum][2] = k;
                 movenum++;
