@@ -12,6 +12,7 @@
 #define foi(n) for (int i = 0; i < n; ++i)
 #define foj(n) for (int j = 0; j < n; ++j)
 #define fok(n) for (int k = 0; k < n; ++k)
+#define fol(n) for (int l = 0; l < n; ++l)
 #define fouser for (int user = 0; user < 2; ++user)
 
 using namespace std;
@@ -22,14 +23,19 @@ int moves[1100][3];
 int movei[] = {-1, 1, 0, 0, 0};
 int movej[] = {0, 0, -1, 1, 0};
 int square9i[9] = {
-    -1,-1,-1,
-    0 ,0 ,0,
-    1 ,1 ,1
-};
+    -1, -1, -1,
+    0, 0, 0,
+    1, 1, 1};
 int square9j[9] = {
-    -1,0,1,
-    -1,0,1,
-    -1,0,1,
+    -1,
+    0,
+    1,
+    -1,
+    0,
+    1,
+    -1,
+    0,
+    1,
 
 };
 /*
@@ -56,7 +62,7 @@ class Game
 {
 public:
     int height, width;
-    int generals[2]; // generals所在坐标
+    int generals[2];                       // generals所在坐标
     int map[2][SquareHeight][SquareWidth]; // map
 
     bool finish;
@@ -66,7 +72,7 @@ public:
         height = height_;
         width = width_;
         currenttime = 0;
-        memset(map,0,sizeof(map));
+        memset(map, 0, sizeof(map));
     }
     void initMap();
     inline int sum(int[][SquareWidth]);
@@ -77,49 +83,65 @@ public:
     int move(Json::Value, Json::Value, bool);
 };
 
-int main() {
-	string str;
-	getline(cin, str);
-	Json::Reader reader;
-	Json::Value input,history, output;
-	reader.parse(str, input);
+int main()
+{
+    freopen("debug.in", "r", stdin);
+    freopen("debug.json", "w", stdout);
+    string str;
+    getline(cin, str);
+    Json::Reader reader;
+    Json::Value input, history, output;
+    reader.parse(str, input);
     Game game;
 
-    game.height = input["height"].asInt();
-    game.width = input["width"].asInt();
+    game.height = input["size"][0].asInt();
+    game.width = input["size"][1].asInt();
     game.currenttime = input["time"].asInt();
-    fok(2) foi(SquareHeight) foj(SquareWidth) {
+    fok(2) foi(SquareHeight) foj(SquareWidth)
+    {
         game.map[k][i][j] = input["map"][k][i][j].asInt();
+        if (game.map[1][i][j] == 7)
+        {
+            game.generals[0] = i;
+            game.generals[1] = j;
+        }
     }
-    foi(2) {
-        game.generals[i] = input["generals"][i].asInt();
-    } 
+
     // history 按照时间顺序从前往后排
-    
+
     const int historyNum = input["history"]["num"].asInt();
-    int historyMap[historyNum][SquareHeight][SquareWidth];
+    int historyMap[historyNum][2][SquareHeight][SquareWidth];
     int historyMove[historyNum][3];
     int historyTimestamp[historyNum];
-    foi(historyNum) {
+    foi(historyNum)
+    {
         history = input["history"]["list"][i];
-        foj(3) 
+        foj(3)
             historyMove[i][j] = history["move"][j].asInt();
-        foj(SquareHeight) fok(SquareWidth) {
-            historyMap[i][j][k] = history["map"][j][k].asInt();
+        fol(2) foj(SquareHeight) fok(SquareWidth)
+        {
+            historyMap[i][l][j][k] = history["map"][l][j][k].asInt();
         }
         historyTimestamp[i] = history["time"].asInt();
     }
     int movenum = 0;
-    foi(game.height) foj(game.width){
-        fok(4){
+    foi(game.height) foj(game.width)
+    {
+        fok(4)
+        {
             int x = i + movei[k];
             int y = j + movej[k];
-            if(x>=0&&x<game.height&&y>=0&&y<game.width&&game.map[1][x][y]==-1&&game.map[1][x][y]==0&&game.map[1][x][y]==2&&game.map[1][x][y]==4&&game.map[1][x][y]==6&&game.map[1][x][y]==8){
-                moves[movenum][0] = x, moves[movenum][1] = y, moves[movenum][3] = k;
+            if (x >= 0 && x < game.height && y >= 0 && y < game.width &&
+                game.map[1][x][y] == -1 && game.map[1][x][y] == 0 &&
+                game.map[1][x][y] == 2 && game.map[1][x][y] == 4 &&
+                game.map[1][x][y] == 6 && game.map[1][x][y] == 8)
+            {
+                moves[movenum][0] = i, moves[movenum][1] = j, moves[movenum][2] = k;
+                movenum++;
             }
         }
     }
-    int index = rand()%movenum;
+    int index = rand() % movenum;
     Json::Value ret;
     ret["output"].append(moves[index][0]);
     ret["output"].append(moves[index][1]);

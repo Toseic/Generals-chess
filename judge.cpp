@@ -384,6 +384,8 @@ void Game::mapWithFog() {
         if (type == 1) {
             mapVision1[0][i][j] = map[0][i][j];
             mapVision1[1][i][j] = map[1][i][j];
+            mapVision2[0][i][j] = map[0][i][j];
+            mapVision2[1][i][j] = map[1][i][j];
         } else if (type >= 3) { //被占据的地方
             if (type % 2 == 1) { // 被user1占据
                 for (int i1=0;i1<9;++i1) {
@@ -392,9 +394,7 @@ void Game::mapWithFog() {
                             mapVision1[0][newi][newj] = map[0][newi][newj];
                             mapVision1[1][newi][newj] = map[1][newi][newj];    
                             fogDisplay1[newi][newj] = 0;
-
                         }
-
                 }
             } else {
                 for (int i1=0;i1<9;++i1) {
@@ -490,11 +490,14 @@ int main() {
             output["content"]["0"]["map"][k][i][j] = game.mapVision1[k][i][j];
             output["content"]["1"]["map"][k][i][j] = game.mapVision2[k][i][j];
             output["display"]["0"]["map"][k][i][j] = game.mapVision1[k][i][j];
-            output["display"]["1"]["map"][k][i][j] = game.mapVision1[k][i][j];
+            output["display"]["1"]["map"][k][i][j] = game.mapVision2[k][i][j];
             
             output["initdata"]["map"][k][i][j] = game.map[k][i][j];
         }
-
+        output["content"]["0"]["history"]["num"] = 0;
+        output["content"]["1"]["history"]["num"] = 0;
+        output["content"]["0"]["time"] = 0;
+        output["content"]["1"]["time"] = 0;
 
         foi(game.height) foj(game.width) {
             output["display"]["0"]["fog"][i][j] = game.fogDisplay1[i][j];
@@ -533,6 +536,17 @@ int main() {
                     output["content"]["0"]["generals"][i] = game.generals[0][i];
                     output["content"]["1"]["generals"][i] = game.generals[1][i];
                 }
+                int history_num = output["content"]["0"]["history"]["num"].asInt();
+                output["content"]["0"]["history"] = log[inputSize-2]["output"]["content"]["0"]["history"];
+                output["content"]["1"]["history"] = log[inputSize-2]["output"]["content"]["1"]["history"];
+                output["content"]["0"]["history"]["list"][history_num]["map"] =  log[inputSize-2]["output"]["content"]["0"]["map"];
+                output["content"]["1"]["history"]["list"][history_num]["map"] =  log[inputSize-2]["output"]["content"]["1"]["map"];
+                output["content"]["0"]["history"]["list"][history_num]["move"] = log[inputSize-1]["0"]["response"];
+                output["content"]["1"]["history"]["list"][history_num]["move"] = log[inputSize-1]["1"]["response"];
+                output["content"]["0"]["history"]["num"] = history_num +1;
+                output["content"]["1"]["history"]["num"] = history_num +1;
+                output["content"]["0"]["time"] = game.currenttime ;
+                output["content"]["1"]["time"] = game.currenttime ;
                 // display TODO:
             } else {
                 game.printFinish();

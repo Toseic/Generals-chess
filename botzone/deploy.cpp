@@ -23,6 +23,8 @@ void userin(int user) {
     if (user == 0) st = "0";
     output["map"] = input["content"][st]["map"];
     output["size"] = input["content"][st]["size"];
+    output["history"] = input["content"][st]["history"];
+    output["time"] = input["content"][st]["time"];
     Json::FastWriter writer;
 	cout << writer.write(output) << endl;
 }
@@ -39,7 +41,7 @@ void logjudge() {
     
     int lengt = logg["num"].asInt();
     // cout << lengt << endl;
-    logg["log"][lengt] = input["content"];
+    logg["log"][lengt]["output"]["content"] = input["content"];
     logg["num"] = logg["num"].asInt() + 1;
     ofs.open("./runfile/log.json");
     Json::FastWriter writer;

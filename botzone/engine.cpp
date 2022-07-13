@@ -35,7 +35,9 @@ int main() {
         if (isend) break;
         // return 0;
         system("(./deploy log judge) < ./runfile/judgeout.json");
-        system("(./deploy log initdata) < ./runfile/judgeout.json");
+        // return 0;
+        if (count == 0)
+            system("(./deploy log initdata) < ./runfile/judgeout.json");
         // return 0;
         system("(./deploy bot0 in) < ./runfile/judgeout.json > ./runfile/bot0in.json");
         system("(./deploy bot1 in) < ./runfile/judgeout.json > ./runfile/bot1in.json");
@@ -51,18 +53,9 @@ int main() {
         // system("../judge < ./runfile/log.json > ./runfile/judgeout.json");
         count ++;
         cout << count << endl;
-        if (count >= 10) break;
+        if (count >= 2) break;
         // return 0;
 
-        // return 0;
-        // system("(./deploy log state) < ./runfile/bot0out.json");
-
-        // // system("(./deploy bot0 out) < ./runfile/judgeout.json > ./runfile/state");
-        // return 0;
-        // statecheck(isend);
-        // system("./judge < ./runfile/bot1out.json > ./runfile/judgeout.json");
-        // system("(./deploy bot1 out) < ./runfile/judgeout.json > ./runfile/state");
-        // statecheck(isend);
     }
 
     return 0;
