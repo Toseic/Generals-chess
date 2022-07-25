@@ -6,6 +6,7 @@
 	<style>
 		body {
 			text-align: center;
+			font-family: Quicksand,serif;
 			background-color: rgb(29, 29, 29);
 		}
 
@@ -13,6 +14,7 @@
 			height: 500px;
 			width: 700;
 			display: inline-block;
+			/* font-family: Quicksand-Bold,serif; */
 			/* position: fixed;
 			top: 10px;
 			left: 150px; */
@@ -177,6 +179,12 @@
 			color: rgb(0, 0, 0);
 			background-color: rgb(255, 255, 255);
 		}
+		@font-face {
+			font-family: Quicksand;
+			/* src: url('https://generals.io/Quicksand-Regular.otf') */
+			src: url('https://github.com/Toseic/Generals-chess/blob/main/font/Quicksand-Regular.otf')
+		}
+
 	</style>
 </head>
 
@@ -437,7 +445,7 @@
 		}
 		// infoProvider.setSize(700, 500);
 		function displayHandler(cb) {
-			timeboard.innerText = "time: " + String(cb.time);
+			timeboard.innerText = "Time: " + String(cb.time);
 			console.log(povallow);
 			
 			if (cb.status !== "end") {
