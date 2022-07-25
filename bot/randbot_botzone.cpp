@@ -10,7 +10,6 @@
 #include <ctime> 
 #include "jsoncpp/json.h"
 #define ind Json::Value::ArrayIndex
-// typedef ind int;
 
 // #include "../jsoncpp/json.h"
 
@@ -90,22 +89,22 @@ public:
 
 int main()
 {
-    // freopen("debug.in", "r", stdin);
-    // freopen("debug.json", "w", stdout);
+    // freopen("../debug.in", "r", stdin);
+    // freopen("../debug.json", "w", stdout);
     string str;
     getline(cin, str);
     Json::Reader reader;
     Json::Value input,info, history, output;
     reader.parse(str, input);
     Game game;
-    int inputsize = input["requests"].size();
-    info = input["requests"][int(inputsize-1)];
+
+    info = input["request"][input["request"].size()-1];
     game.height = info["size"][ind(0)].asInt();
     game.width = info["size"][ind(1)].asInt();
     game.currenttime = info["time"].asInt();
     fok(2) foi(SquareHeight) foj(SquareWidth)
     {
-        game.map[k][i][j] = info["map"][ind(k)][ind(i)][ind(j)].asInt();
+        game.map[k][i][j] = info["map"][k][i][j].asInt();
         if (game.map[1][i][j] == 7)
         {
             game.generals[0] = i;
@@ -115,13 +114,13 @@ int main()
 
     // history 按照时间顺序从前往后排
 
-    const int historyNum = input["responses"].size();
+    const int historyNum = input["response"].size();
     
     int historyMove[historyNum][3];
     int historyTimestamp[historyNum];
     foi(historyNum)
     {
-        history = input["responses"][ind(i)];
+        history = input["response"][i];
         foj(3)
             historyMove[i][j] = history[j].asInt();
         // historyTimestamp[i] = history["time"].asInt();
@@ -179,7 +178,7 @@ int main()
     }
     srand((unsigned)time(0));
     int index = rand() % movenum;
-    Json::Value ret,ret1;
+    Json::Value ret;
     // ret["output"].append(moves[index][0]);
     // ret["output"].append(moves[index][1]);
     // ret["output"].append(moves[index][2]);
@@ -187,7 +186,7 @@ int main()
     ret[ind(1)] = moves[index][1];
     ret[ind(2)] = moves[index][2];
     Json::FastWriter writer;
-    ret1["response"] = ret;
-    cout << writer.write(ret1) << endl;
+    ret["response"] = ret;
+    cout << writer.write(ret) << endl;
     return 0;
 }

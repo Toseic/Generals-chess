@@ -1,358 +1,520 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title></title>
-    <style>
-        body {
-          text-align: center;
-          background-color: rgb(29, 29, 29);
-        }
-  
-        .chessboard {
-            height: 700px;
-            width: 700px;
-            display: inline-block;
-            /* text-align: center; */
-            background-color: rgb(29, 29, 29);
 
-        }
-        table {
-            background-color: rgb(29, 29, 29);
-        }
-  
-        td {
-            
-            background-color:rgb(220, 220, 220);
-            font-size :12px;
-            text-overflow: ellipsis;
-            color: white;
-            border-radius: 0px;
-            border: 0.7px solid rgb(29, 29, 29);
-            
-            line-height: 25px;
-            height: 25px;
-            width: 25px;
-            padding: 0px;
-            font-weight: 500;
-            text-align: center;
+<head>
+	<title></title>
+	<style>
+		body {
+			text-align: center;
+			background-color: rgb(29, 29, 29);
+		}
 
-            background-size:22px 22px;
-            /* -moz-background-size:100% 100%; */
-            white-space: nowrap;
+		.chessboard {
+			height: 500px;
+			width: 700;
+			display: inline-block;
+			/* position: fixed;
+			top: 10px;
+			left: 150px; */
+			text-align: center;
+			background-color: rgb(29, 29, 29);
+		}
 
-            /* position: relative;
-            border: 1.5px solid black;
-            width: 25px;
-            height: 25px;
-            background: #dcdcdc;
-            text-align: center;
-            color: white;
-            text-shadow: 0 0 1px black;
-            opacity: 1;
-            padding: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            font-size: 12px;
-            background-size:100% 100%; */
+		.timeboard {
+			position: fixed;
+			top: 0px;
+			left: 0px;
+			padding: 5px;
+			font-size: 12px;
+			background: white;
+			color: black;
+			border-right: 2px solid teal;
+			border-bottom: 2px solid teal;
+			text-align: center;
+			min-width: 84px;
+			z-index: 25;
 
-        }
-        .city {
-            background-image: url("./img/city.png");
-            background-color: gray;
-            background-position: center center;
-            background-repeat: no-repeat;
-            border: 1px solid rgba(0, 0, 0, 0);
+		}
 
-        }
-        .mountain {
-            background-image: url("./img/mountain.png");
-            background-color: rgb(187, 187, 187);
-            background-position: center center;
-            background-repeat: no-repeat;
-            border: 0.7px solid rgb(29, 29, 29);
-            /* color: #ffffff00; */
-        }
-        .mountain.fog {
-            background-image: url("./img/mountain.png");
-            background-color: rgba(255,255,255,0.1);
-            background-position: center center;
-            background-repeat: no-repeat;
-            border: 1px solid rgba(29, 29, 29, 0);
-            /* color: #ffffff00; */
-        }
-        .general {
-            background-image: url("./img/crown.png");
-            background-position: center center;
-            background-repeat: no-repeat;
 
-        }
-        .square {
-            background-position: center center;
-        }
-        .chosd {
-            border-color: rgb(75, 247, 176);
-        }
-        .fog {
-            color:#ffffff00;
-            border: 1px solid rgba(29, 29, 29, 0);
-            background-color: rgba(255,255,255,0.1)
-        }
-        .from {
-          border-color: aquamarine;
-        }
-  
-        .to {
-          border-color: brown;
-        }
-  
-        .from.to {
-          border-color: chocolate;
-        }
-  
-        .red {
-          /* color: red; */
-          background-color: red;
-        }
-  
-        .blue {
-          color: #0033aa;
-          background-color: #aaddff;
-        }
-  
-        .neutral {
-          color: #332a1b;
-          background-color: #eceffa;
-        }
-  
-        .fortress {
-          -webkit-text-stroke: 1px rgba(0, 0, 0, 0.5);
-        }
-  
-        .blue.fortress {
-          color: #002299;
-          background-color: #77bbff;
-        }
-  
-        .red.fortress {
-          color: #771100;
-          background-color: #ea9;
-        }
-  
-        .base {
-          font-size: 20px;
-          box-shadow: 0 0 4px 0px chartreuse;
-        }
 
-        .neutral.fortress {
-          color: #210;
-          background-color: #ccc;
-        }
-  
-        .obstacle {
-          background-color: #962;
-        }
-  
-        .draw,
-        .winning {
-          font-size: 40px;
-        }
-  
-        .draw {
-          color: #333;
-        }
-  
-        .redwin {
-          color: crimson;
-        }
-  
-        .bluewin {
-          color: dodgerblue;
-        }
-  
-        .neutralw {
-          color: #333;
-        }
+		table {
+			background-color: rgb(29, 29, 29);
+			
+		}
 
-        #city {
-            background-image: url("./img/city.png");
-        }
-      </style>
-  </head>
+		td {
 
-  <body>
-    <div class="winning">
-      <span id="redName" class="redwin"></span> vs
-      <span id="blueName" class="bluewin"></span>
-    </div>
-    <div class="scoreBoard">
-      兵力
-      <span id="redScore" class="redwin"></span>
-      :
-      <span id="blueScore" class="bluewin"></span>
-      :
-      <span id="neutrScore" class="neutralw"></span>
-    </div>
-    <div class="squareBoard">
-      领土面积
-      <span id="redArea" class="redwin"></span>
-      :
-      <span id="blueArea" class="bluewin"></span>
-    </div>
-    <div>
-      <table class="chessboard" id="chessDisplay" cellpadding="10px" cellspacing="0px"></table>
-    </div>
-    <div id="message"></div>
+			background-color: rgb(220, 220, 220);
+			font-size: 12px;
+			text-overflow: ellipsis;
+			color: white;
+			border-radius: 0px;
+			border: 0.7px solid rgb(29, 29, 29);
 
-    <script src="/javascripts/jquery-2.1.0.min.js"></script>
-    <script src="player_api.js"></script>
-    <script>
-        class cell {
-            constructor(x,y,n1=0,n2=-1) {
-                this.__count = n1;
-                this.__type = n2;
-                this.__element = document.createElement("td");
-                // this.__element.id = "city";
-                // this.addClass("city");
-                this.focusOn=function() {  
-                    this.addClass("chosd");
-                } 
-                // style change TODO:
-                this.__element.addEventListener("click", (e) => {
-                    game.refreshChosd(x,y);
-                });
-            }
-            get type() {
-                return this.__type;
-            }
-            get count() {
-                return this.__count;
-            }
-            get element() {
-                return this.__element;
-            }
-            set type(x) { 
-                switch(x) {
-                    case -1:
-                        break;
-                    case 0:
-                        break;
-                    case 1:
-                        this.addClass("mountain");                        
-                        break;
-                    case 2:
-                        this.addClass("city");
-                    case 3: case 4: 
-                        this.addClass(belonglist[1-x%2]);
-                        this.delClass(belonglist[x%2]);                    
-                    case 5: case 6: 
-                        this.addClass("city");
-                        this.addClass(belonglist[1-x%2]);
-                        this.delClass(belonglist[x%2]);
-                    case 7: case 8:
-                        this.addClass("general");
-                        this.addClass(belonglist[1-x%2]);
-                        this.delClass(belonglist[x%2]);
-                        break;
-                    default:
-                        throw 'error type';
+			line-height: 25px;
+			height: 25px;
+			width: 25px;
+			padding: 0px;
+			font-weight: 400;
+			text-align: center;
 
-                }                    
-            }
+			background-size: 22px 22px;
+			/* -moz-background-size:100% 100%; */
+			white-space: nowrap;
 
-            
-            addClass(x) {
-                if (!this.__element.classList.contains(x))
-                    this.__element.classList.add(x);
-            }
-            delClass(x) {
-                if (this.__element.classList.contains(x))
-                    this.__element.classList.remove(x);
-            }
-            set num(x) {
-                if (x!=0)
-                    this.__element.innerHTML = x.toString();
-            }
-            get num() {
-                return this.__element.innerHTML ;
-            }
-            setfog = function (bol) {
-                if (bol==0 || bol == false) {
-                    this.delClass("fog");
-                } else {
-                    this.addClass("fog");
-                }
-            }
-            // set type(x) {
-            //     this.del(belonglist[1-x]);
-            //     this.add(belonglist[x]);
-            // }
+		}
 
-        }
-        // var initData = infoProvider.getMatchInitData();
-        // var height = initData.height;
-        // var width = initData.width;
-        var height = 16;
-        var width = 16;
-        var game ={};
-        const type2str = {
-            "-1" : "unknown",
-            "0" : "freeSquare",
-            "1" : "mountain",
-            "2": "freeCity",
-            "3":"user1Square",
-            "4":"user2Square",
-            "5":"user1City",
-            "6":"user2City",
-            "7":"user1Generals",
-            "8":"user2Generals",
-        };
-        const belonglist = ["red","blue"];
-        game.map = [];
-        game.chsdAction = [-1,-1,-1];
-        game.refreshChosd = function(x,y) {
-            if (x<0 || y<0 || x>=height || y>width) 
-                throw "error coord";
-            if (this.chsdAction[0] == -1 ){
-                console.log("-1");
-                console.log(this.chsdAction[0]);
-            }
-            else {
-                this.map[this.chsdAction[0]][this.chsdAction[1]].delClass("chosd");
-            }
-            this.chsdAction = [x,y,this.map[x][y].__count-1];
-            this.map[x][y].addClass("chosd");
-        }
-        
-        for (let i = 0;i<height;++i) {
-            let er = [];
-            let line = document.createElement("tr");
-            for (let j = 0; j < width; ++j) {
-                let c = new cell(i, j);
-                er.push(c);
-                line.appendChild(c.element);
-            }
-            game.map.push(er);
-            document.getElementById("chessDisplay").appendChild(line);
-        }
-        // infoProvider.setSize(700, 700);
-        function displayHandler(cb) {
-            if (cb.status !== "end") {
-                for (let i = 0; i < height; ++i) {
-                    for (let j = 0; j < width; ++j) {
-                        game.map[i][j].num = cb.map[0][i][j];
-                        game.map[i][j].type = cb.map[1][i][j];
-                        game.map[i][j].setfog(cb.fog[i][j])
-                    }                    
-                }
+		.city {
+			/* background-image: url("./img/city.png"); */
+			background-image: url("https://generals.io/city.png");
+			background-color: gray;
+			background-position: center center;
+			background-repeat: no-repeat;
+			/* border: 1px solid rgba(0, 0, 0, 0); */
+			border: 0.7px solid rgb(29, 29, 29);
+		}
 
-            }
+		.mountain {
+			/* background-image: url("./img/mountain.png"); */
+			background-image: url("https://generals.io/mountain.png");
+			background-color: rgb(187, 187, 187);
+			background-position: center center;
+			background-repeat: no-repeat;
+			border: 0.7px solid rgb(29, 29, 29);
+			
+			/* color: #ffffff00; */
+		}
 
-        }
+		.mountain.fog {
+			/* background-image: url("./img/mountain.png"); */
+			/* background-image: url("./img/mountain.png"); */
+			background-color: rgba(255, 255, 255, 0.1);
+			background-position: center center;
+			background-repeat: no-repeat;
+			border: 1px solid rgba(29, 29, 29, 0);
+			/* color: #ffffff00; */
+		}
 
-        var cb = { "fog": [ [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1] ], "map": [ [ [-1, -1, -1, -1, 0, -1, 0, -1, -1, -1, -1, 0, -1, 0, 0, 0], [0, -1, -1, -1, 0, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1], [-1, -1, 0, -1, -1, 0, -1, 0, -1, -1, -1, 0, -1, 0, -1, -1], [-1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1], [-1, -1, -1, -1, 0, -1, -1, -1, 0, -1, -1, 0, -1, -1, -1, -1], [0, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1], [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], [-1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, 0, -1, 0, -1, -1], [0, -1, 0, -1, 0, -1, 0, -1, -1, -1, -1, -1, 0, -1, -1, -1], [-1, -1, 0, -1, -1, -1, 0, 0, -1, -1, -1, -1, 0, -1, -1, 0], [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1], [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1], [0, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, 0, -1], [-1, 0, 0, -1, -1, -1, -1, 0, -1, 0, 0, 0, 0, -1, -1, 0], [-1, -1, 0, -1, 0, -1, -1, -1, 0, 0, 4, 0, -1, -1, -1, -1], [-1, 0, -1, -1, 0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1] ], [ [-1, -1, -1, -1, 1, -1, 1, -1, -1, -1, -1, 1, -1, 1, 1, 1], [1, -1, -1, -1, 1, -1, -1, -1, -1, 1, -1, -1, -1, -1, -1, -1], [-1, -1, 1, -1, -1, 1, -1, 1, -1, -1, -1, 1, -1, 1, -1, -1], [-1, -1, -1, -1, -1, -1, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1], [-1, -1, -1, -1, 1, -1, -1, -1, 1, -1, -1, 1, -1, -1, -1, -1], [1, -1, -1, -1, -1, 1, -1, -1, -1, -1, -1, 1, -1, -1, -1, -1], [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], [-1, -1, -1, -1, 1, -1, -1, -1, -1, -1, -1, 1, -1, 1, -1, -1], [1, -1, 1, -1, 1, -1, 1, -1, -1, -1, -1, -1, 1, -1, -1, -1], [-1, -1, 1, -1, -1, -1, 1, 1, -1, -1, -1, -1, 1, -1, -1, 1], [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, -1, -1, -1], [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, -1, -1, -1], [1, -1, -1, -1, -1, -1, -1, 1, -1, -1, -1, -1, -1, -1, 1, -1], [-1, 1, 1, -1, -1, -1, -1, 1, -1, 0, 0, 0, 1, -1, -1, 1], [-1, -1, 1, -1, 1, -1, -1, -1, 1, 0, 7, 0, -1, -1, -1, -1], [-1, 1, -1, -1, 1, -1, -1, -1, -1, 0, 0, 1, -1, -1, -1, -1] ] ], "status": "opening" };
-        displayHandler(cb);
-        
-    </script>
-  </body>
+		.general {
+			/* background-image: url("./img/crown.png"); */
+			background-image: url("https://generals.io/crown.png");
+			background-position: center center;
+			background-repeat: no-repeat;
+
+		}
+
+		.square {
+			background-position: center center;
+		}
+
+		.chosd {
+			border-color: rgb(75, 247, 176);
+		}
+
+		.fog {
+			color: #ffffff00;
+			border: 1px solid rgba(29, 29, 29, 0);
+			background-color: rgba(255, 255, 255, 0.1)
+		}
+
+		.from {
+			border-color: aquamarine;
+		}
+
+		.to {
+			border-color: brown;
+		}
+
+		.from.to {
+			border-color: chocolate;
+		}
+
+		.red {
+			/* color: red; */
+			background-color: red;
+		}
+
+		.reduser {
+			/* color: red; */
+			background-color: red;
+		}
+
+		.blue {
+			background-color: #4363d8;
+			color: #ffffff;
+		}
+
+		.blueuser {
+			background-color: #0033aa;
+			color: #ffffff;
+		}
+
+		.neutral {
+			color: #332a1b;
+			background-color: #eceffa;
+		}
+		.userboard {
+			position: fixed;
+			top: 0px;
+			right: 0px;
+			z-index: 25;
+			background: black;
+			width: 200px;
+			max-width: 85%;
+			
+			/* padding: 10px; */
+			/* background: #bbb */
+		}
+		.userboard.td {
+			/* background: white; */
+			/* padding: 5px; */
+			color: black;
+			text-align: center;
+			font-size: 12px;
+		}
+		.simple {
+			color: rgb(0, 0, 0);
+			background-color: rgb(255, 255, 255);
+		}
+	</style>
+</head>
+
+<body>
+
+
+	<div>
+		<div class="timeboard" id="timeboard">Time: 0</div>
+		<table class="chessboard" id="chessDisplay" cellpadding="10px" cellspacing="0px"></table>
+		<table class="userboard" cellpadding="10px" cellspacing="0px">
+			<tbody>
+				<tr>
+					<td class="simple">POV</td>
+					<td class="simple">Player</td>
+					<td class="simple">Army</td>
+					<td class="simple">Land</td>
+				</tr>
+				<tr>
+					<td class="simple"><input type="checkbox" name="checkbox0" id="pov0" /></td>
+					<td class="reduser" id="reduser"></td>
+					<td class="simple" id="redarmy"></td>
+					<td class="simple" id="redland"></td>
+				</tr>
+				<tr>
+					<td class="simple"><input type="checkbox" name="checkbox1" id="pov1" /></td>
+					<td class="blueuser" id="blueuser"></td>
+					<td class="simple" id="bluearmy"></td>
+					<td class="simple" id="blueland"></td>
+				</tr>
+			</tbody>
+		</table>
+
+	</div>
+	<div id="message"></div>
+
+	<script src="/javascripts/jquery-2.1.0.min.js"></script>
+	<script src="player_api.js"></script>
+	<script>
+		class cell {
+			constructor(x, y, n1 = 0, n2 = -1) {
+				this.__count = n1;
+				this.__type = n2;
+				this.__element = document.createElement("td");
+				this.focusOn = function () {
+					this.addClass("chosd");
+				}
+				// style change 
+				this.__element.addEventListener("click", (e) => {
+					game.refreshChosd(x, y);
+				});
+			}
+			get type() {
+				return this.__type;
+			}
+			get count() {
+				return this.__count;
+			}
+			get element() {
+				return this.__element;
+			}
+			get chosd() {
+				return this.__element.classList.contains("chosd");
+			}
+			set type(x) {
+				this.__type = x;
+				switch (x) {
+					case -1:
+						this.delClass("red");
+						this.delClass("blue");
+						break;
+					case 0:
+						this.delClass("red");
+						this.delClass("blue");
+						break;
+					case 1:
+						this.addClass("mountain");
+						this.delClass("red");
+						this.delClass("blue");
+						break;
+					case 2:
+						this.addClass("city");
+						this.delClass("red");
+						this.delClass("blue");
+						break;
+					case 3: case 4:
+						this.addClass(belonglist[1 - x % 2]);
+						this.delClass(belonglist[x % 2]);
+						break;
+					case 5: case 6:
+						this.addClass("city");
+						this.addClass(belonglist[1 - x % 2]);
+						this.delClass(belonglist[x % 2]);
+						break;
+					case 7: case 8:
+						this.addClass("general");
+						this.addClass(belonglist[1 - x % 2]);
+						this.delClass(belonglist[x % 2]);
+						break;
+					default:
+						throw 'error type';
+
+				}
+			}
+
+
+			addClass(x) {
+				if (!this.__element.classList.contains(x))
+					this.__element.classList.add(x);
+			}
+			delClass(x) {
+				if (this.__element.classList.contains(x))
+					this.__element.classList.remove(x);
+			}
+			set num(x) {
+				if (x > 0)
+					this.__element.innerHTML = x.toString();
+			}
+			get num() {
+				return this.__element.innerHTML;
+			}
+			setfog = function (bol) {
+				if (bol == 0 || bol == false) {
+					this.delClass("fog");
+				} else {
+					this.addClass("fog");
+					this.delClass("city");
+					this.delClass("general");
+					this.delClass("red");
+					this.delClass("blue");
+
+				}
+			}
+
+
+		}
+		// var initData = infoProvider.getMatchInitData();
+		// var height = initData.height;
+		// var width = initData.width;
+		var height = 16;
+		var width = 16;
+		var game = {};
+		var user = infoProvider.getPlayerID();
+		var islive = infoProvider.isLive();
+		var povallow = infoProvider.getPlayerID() == -1;
+		// var user = 0;
+		// var islive = true;
+		// var povallow = false;		
+		var fogDisplay = true;
+		const type2str = {
+			"-1": "unknown",
+			"0": "freeSquare",
+			"1": "mountain",
+			"2": "freeCity",
+			"3": "user1Square",
+			"4": "user2Square",
+			"5": "user1City",
+			"6": "user2City",
+			"7": "user1Generals",
+			"8": "user2Generals",
+		};
+		const movei = [-1, 1, 0, 0];
+		const movej = [0, 0, -1, 1];
+		const belonglist = ["red", "blue"];
+		game.map = [];
+		game.chsdAction = [-1, -1, -1];
+		game.refreshChosd = function (x, y) {
+			if (x < 0 || y < 0 || x >= height || y > width)
+				throw "error coord";
+			if (this.chsdAction[0] != -1) {
+				this.map[this.chsdAction[0]][this.chsdAction[1]].delClass("chosd");
+			}
+			this.chsdAction = [x, y, -1];
+			this.map[x][y].addClass("chosd");
+		}
+		game.chooseAction = function (e) {
+			var legalposition = true;
+			var i = this.chsdAction[0];
+			var j = this.chsdAction[1];
+			if (!(islive && !povallow)) {
+				legalposition = false;
+				return;
+			}
+			if (i == -1 || j == -1) {
+				legalposition = false;
+				return;
+			}
+			if (e == 4) {
+				infoProvider.notifyPlayerMove([-1, -1, -1]);
+				return;
+			}
+			if (game.map[i][j].num <= 1) {
+				legalposition = false;
+				return;
+			}
+			var type_ = game.map[i][j].type;
+			if (
+				type_ != 3 + user &&
+				type_ != 5 + user &&
+				type_ != 7 + user
+			) {
+				legalposition = false;
+				return;
+			}
+			var newi = i + movei[e];
+			var newj = j + movej[e];
+			if (newi < 0 || newi >= height || newj < 0 || newj >= width) {
+				legalposition = false;
+				return;
+			}
+			if (game.map[newi][newj].type == 1) {
+				legalposition = false;
+				return;
+			}
+			if (legalposition) {
+				this.chsdAction[2] = e;
+				infoProvider.notifyPlayerMove(this.chsdAction);
+				game.refreshChosd(newi,newj);
+				console.log(this.chsdAction)
+			}
+		}
+		function keypress(e) {
+			var direction = -1;
+			switch (e.keyCode) {
+				case 87: // "w"
+				case 38: // "up"
+					direction = 0;
+					break;
+				case 83: // "s"
+				case 40: // "down"
+					direction = 1;
+					break;
+				case 65: // "a"
+				case 37: // "left"
+					direction = 2;
+					break;
+				case 68: // "d"
+				case 39: // "right"
+					direction = 3;
+					break;
+				case 13: // "enter"
+					direction = 4;
+				default:
+					break;
+			}
+			return direction;
+		}
+
+		for (let i = 0; i < height; ++i) {
+			let er = [];
+			let line = document.createElement("tr");
+			for (let j = 0; j < width; ++j) {
+				let c = new cell(i, j);
+				er.push(c);
+				line.appendChild(c.element);
+			}
+			game.map.push(er);
+			document.getElementById("chessDisplay").appendChild(line);
+		}
+		// infoProvider.setSize(700, 500);
+		function displayHandler(cb) {
+			timeboard.innerText = "time: " + String(cb.time);
+			console.log(povallow);
+			
+			if (cb.status !== "end") {
+				var data;
+				redarmy.innerText = cb.army[0];
+				bluearmy.innerText = cb.army[1];
+				redland.innerText = cb.land[0];
+				blueland.innerText = cb.land[1];
+				if (!povallow) {
+					if (user == 0) data = cb.user0;
+					else data = cb.user1;
+				} else if (povallow) {
+					var pov0 = $("input[name = 'checkbox0']").is(':checked');
+					var pov1 = $("input[name = 'checkbox1']").is(':checked');
+
+					console.log(pov0, pov1);
+					if (!pov0 && !pov1) { data = cb.full; fogDisplay = false; }
+					else if (pov0 && pov1) { data = cb.both; fogDisplay = true; }
+					else if (pov0) { data = cb.user0; fogDisplay = true; }
+					else if (pov1) { data = cb.user1; fogDisplay = true; }
+
+				}
+				console.log(fogDisplay)
+				console.log(data);
+				for (let i = 0; i < height; ++i) {
+					for (let j = 0; j < width; ++j) {
+						game.map[i][j].num = data.map[0][i][j];
+						var type_ = data.map[1][i][j];
+						if (fogDisplay) {
+							game.map[i][j].setfog(data.fog[i][j]);
+							game.map[i][j].type = -1;
+							if (type_ == 1 || data.fog[i][j] == 0) {
+								game.map[i][j].type = type_;
+							}
+						} else {
+							if (!povallow && (type_ - user == 7)) {
+								game.refreshChosd(i, j);
+							}
+							game.map[i][j].setfog(false);
+							game.map[i][j].type = type_;
+						}
+
+					}
+				}
+			}
+
+		}
+		// /*
+		infoProvider.setReadFullLogCallback(function (log) {
+			if (log.output && log.output.display)
+				displayHandler(log.output.display);
+		});
+		infoProvider.setNewLogCallback(displayHandler);
+		infoProvider.setReadHistoryCallback(function (logs) {
+			for (var i = 0; i < logs.length; i++) {
+				displayHandler(logs[i]);
+			}
+		});
+		// */
+		document.onkeydown = function (event) {
+			var oEvent = event ? event : (window.event ? window.event : null);
+			var k = keypress(oEvent);
+			if (k >= 0) {
+				game.chooseAction(k);
+			}
+		};
+
+		// /*
+		let name = infoProvider.getPlayerNames();
+		reduser.innerText = name[0].name;
+		blueuser.innerText = name[1].name;
+		infoProvider.notifyInitComplete();
+		// */
+        // var cb = { "debug": [ [ [2, 2, 0, 0, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [3, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [5, 5, 2, 0, 0, 0, 0, 0, 0, 0, 40, 0, 0, 0, 0, 0], [7, 2, 2, 0, 0, 40, 0, 47, 0, 0, 0, 0, 0, 0, 0, 0], [2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 44, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 48, 0, 0, 0, 0, 0, 0, 49, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1, 11, 2, 2, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0], [0, 0, 0, 44, 0, 2, 2, 4, 2, 2, 3, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 49, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 40, 0, 0, 0, 0, 0, 0], [49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] ], [ [3, 3, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0], [7, 3, 3, 1, 0, 1, 0, 1, 0, 1, 2, 1, 0, 0, 0, 0], [3, 3, 3, 0, 0, 2, 0, 2, 0, 1, 0, 0, 1, 0, 1, 0], [3, 3, 1, 0, 0, 0, 1, 1, 1, 0, 2, 0, 0, 0, 0, 0], [3, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], [3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1], [0, 0, 2, 0, 0, 0, 0, 1, 0, 2, 1, 0, 1, 0, 1, 0], [1, 1, 0, 0, 4, 4, 4, 4, 4, 0, 1, 0, 0, 1, 1, 1], [0, 0, 0, 1, 0, 4, 4, 8, 4, 4, 0, 0, 1, 0, 1, 0], [0, 1, 0, 2, 0, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 4, 1, 0, 0, 0, 2, 0, 0, 0], [1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0, 2, 0, 1, 1, 0, 0, 0], [2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0] ] ], "status": "opening", "time": 33, "user0": { "fog": [ [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1] ], "map": [ [ [2, 2, 0, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], [3, 2, 3, 0, -1, -1, -1, -1, -1, -1, 0, 0, -1, -1, -1, -1], [5, 5, 2, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, -1, -1, -1], [7, 2, 2, 0, -1, -1, -1, -1, -1, 0, -1, -1, 0, -1, 0, -1], [2, 2, 0, 0, -1, -1, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1], [1, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0], [1, 0, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, 0, 0], [0, 0, -1, -1, -1, -1, -1, 0, -1, -1, 0, -1, 0, -1, 0, -1], [0, 0, -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, 0, 0, 0], [-1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, 0, -1], [-1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], [-1, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1], [0, 0, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, 0, 0, 0, -1], [-1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, -1, -1, -1], [-1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], [0, -1, 0, -1, 0, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1] ], [ [3, 3, 0, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], [3, 3, 3, 0, -1, -1, -1, -1, -1, -1, 1, 1, -1, -1, -1, -1], [7, 3, 3, 1, -1, 1, -1, 1, -1, 1, -1, 1, -1, -1, -1, -1], [3, 3, 3, 0, -1, -1, -1, -1, -1, 1, -1, -1, 1, -1, 1, -1], [3, 3, 1, 0, -1, -1, 1, 1, 1, -1, -1, -1, -1, -1, -1, -1], [3, 1, 0, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1], [3, 0, -1, -1, -1, -1, -1, -1, 1, -1, -1, -1, -1, -1, 1, 1], [0, 0, -1, -1, -1, -1, -1, 1, -1, -1, 1, -1, 1, -1, 1, -1], [1, 1, -1, -1, -1, -1, -1, -1, -1, -1, 1, -1, -1, 1, 1, 1], [-1, -1, -1, 1, -1, -1, -1, -1, -1, -1, -1, -1, 1, -1, 1, -1], [-1, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], [-1, -1, -1, -1, -1, -1, -1, -1, 1, -1, -1, -1, -1, -1, -1, -1], [1, 1, -1, -1, -1, 1, -1, -1, -1, -1, -1, -1, 1, 1, 1, -1], [-1, -1, -1, 1, -1, -1, -1, -1, -1, -1, -1, 1, 1, -1, -1, -1], [-1, -1, -1, -1, -1, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], [1, -1, 1, -1, 1, -1, -1, -1, 1, -1, -1, -1, -1, -1, -1, -1] ] ] }, "user1": { "fog": [ [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1], [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1], [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1], [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1], [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1] ], "map": [ [ [-1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0, 0, -1, -1, -1, -1], [-1, -1, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, -1, -1, -1], [-1, -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, 0, -1, 0, -1], [-1, -1, 0, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1], [-1, 0, -1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0], [-1, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, 0, 0], [-1, -1, -1, 0, 0, 0, 0, 0, 0, 49, 0, -1, 0, -1, 0, -1], [0, 0, -1, 0, 1, 1, 11, 2, 2, 0, 0, -1, -1, 0, 0, 0], [-1, -1, -1, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, -1, 0, -1], [-1, 0, -1, -1, 0, 2, 2, 4, 2, 2, 3, 0, -1, -1, -1, -1], [-1, -1, -1, -1, 0, 0, 0, 2, 0, 0, 0, 0, -1, -1, -1, -1], [0, 0, -1, -1, -1, 0, 0, 0, 0, -1, -1, -1, 0, 0, 0, -1], [-1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, -1, -1, -1], [-1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], [0, -1, 0, -1, 0, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1] ], [ [-1, -1, -1, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, 1, -1, -1, -1, -1], [-1, -1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1, -1, -1, -1, -1], [-1, -1, -1, -1, -1, -1, -1, -1, -1, 1, -1, -1, 1, -1, 1, -1], [-1, -1, 1, -1, -1, -1, 1, 1, 1, -1, -1, -1, -1, -1, -1, -1], [-1, 1, -1, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1], [-1, -1, -1, -1, -1, -1, -1, -1, 1, -1, -1, -1, -1, -1, 1, 1], [-1, -1, -1, 0, 0, 0, 0, 1, 0, 2, 1, -1, 1, -1, 1, -1], [1, 1, -1, 0, 4, 4, 4, 4, 4, 0, 1, -1, -1, 1, 1, 1], [-1, -1, -1, 1, 0, 4, 4, 8, 4, 4, 0, 0, 1, -1, 1, -1], [-1, 1, -1, -1, 0, 4, 4, 4, 4, 4, 4, 0, -1, -1, -1, -1], [-1, -1, -1, -1, 0, 0, 0, 4, 1, 0, 0, 0, -1, -1, -1, -1], [1, 1, -1, -1, -1, 1, 0, 0, 0, -1, -1, -1, 1, 1, 1, -1], [-1, -1, -1, 1, -1, -1, -1, -1, -1, -1, -1, 1, 1, -1, -1, -1], [-1, -1, -1, -1, -1, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], [1, -1, 1, -1, 1, -1, -1, -1, 1, -1, -1, -1, -1, -1, -1, -1] ] ] } };
+        // displayHandler(cb);
+
+	</script>
+</body>
+
 </html>

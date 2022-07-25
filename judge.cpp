@@ -5,6 +5,8 @@
 #include <ctime>
 #include <string>
 #include "jsoncpp/json.h"
+#define ind Json::Value::ArrayIndex
+
 
 #define foi(n) for (int i = 0; i < n; ++i)
 #define foj(n) for (int j = 0; j < n; ++j)
@@ -70,9 +72,12 @@ public:
     int map[2][SquareHeight][SquareWidth];
     int mapVision1[2][SquareHeight][SquareWidth];
     int mapVision2[2][SquareHeight][SquareWidth];
+    int mapVisionBoth[2][SquareHeight][SquareWidth];
     int fogDisplay1[SquareHeight][SquareWidth];
     int fogDisplay2[SquareHeight][SquareWidth];
-
+    int fogDisplayBoth[SquareHeight][SquareWidth];
+    int army[2];
+    int land[2];
 
     bool finish;
     int winner,errorcode;
@@ -88,6 +93,7 @@ public:
         memset(map,0,sizeof(map));
         memset(mapVision1,0,sizeof(mapVision1));
         memset(mapVision2,0,sizeof(mapVision2));
+        memset(mapVisionBoth,0,sizeof(mapVisionBoth));
     }
     void initMap();
     bool generalsCheck();
@@ -98,9 +104,9 @@ public:
     void fight(int &, int &, int &);
     void scheduleAdd();
     int move(int[3], int[3], bool);
-    void move(int[3], int user);
+    void move(int[3], int user, int moveN);
     int move(Json::Value, Json::Value, bool);
-    void mapWithFog();
+    void mapCompute();
     void loadMap(Json::Value);
     void printFinish();
     void printError();
@@ -111,6 +117,7 @@ bool Game::generalsCheck()
     float distance = sqrt((generals[0][0] - generals[1][0]) * (generals[0][0] - generals[1][0]) +
                           (generals[0][1] - generals[1][1]) * (generals[0][1] - generals[1][1]));
     if (distance < (height + width) / 4)
+    // if (distance > (height + width) / 6)
         return false;
     return true;
 }
@@ -192,17 +199,21 @@ void Game::initMap()
 
 void Game::fight(int &n1, int &n2)
 {
-    n1 = 0 ? n1 < n2 : n1 - n2;
-    n2 = 0 ? n2 < n1 : n2 - n1;
+    if (n1<n2) {
+        n2 -= n1; n1 = 0;
+    } else {
+        n1 -= n2; n2 = 0;
+    }
 }
 
 void Game::fight(int &f1, int &n1, int &n2)
 {
-    int numb[] = {f1, n1, n2};
-    int point = 1 ? n1 >= n2 : 2;
-    int lef1 = abs(numb[point] - f1);
+    int f1_=f1,n1_=n1,n2_=n2;
+    int numb[] = {f1_, n1_, n2_};
+    int point = 1 ? n1_ >= n2_ : 2;
+    int lef1 = abs(numb[point] - f1_);
     int lef2 = abs(lef1 - numb[3 - point]);
-    int Npoint = point ? numb[point] > f1 : 0;
+    int Npoint = point ? numb[point] > f1_ : 0;
     Npoint = Npoint ? lef1 > numb[3 - point] : 0;
     int ret[] = {0, 0, 0};
     ret[Npoint] = lef2;
@@ -223,46 +234,48 @@ void Game::scheduleAdd()
     }
 }
 
-void Game::move(int move[3], int user) {
-	int toi = move[0] + movei[move[2]], toj = move[1] + movej[move[2]], 
-		moveN = map[0][move[0]][move[1]]-1;
-	int toN, type = map[0][toi][toj], map[1][toi][toj];
+void Game::move(int move[3], int user, int moveN) {
+	int toi = move[0] + movei[move[2]], toj = move[1] + movej[move[2]];
+	int toN = this->map[0][toi][toj], type=this->map[1][toi][toj];
 	int r1 = toN, r2 = moveN;
 	fight(r1, r2);
 	int maxr = r1 + r2;
 	bool occupy = r2 > 0;
 	if (type == 0) {   // free square
-		map[1][toi][toj] = 3 + user; // 3:user1 4:user2
-		map[0][toi][toj] = moveN;
+		this->map[1][toi][toj] = 3 + user; // 3:user1 4:user2
+		this->map[0][toi][toj] = moveN;
 	}
-	else if (type == 0) { // free city
-		map[0][toi][toj] = maxr;
+	else if (type == 2) { // free city
+		this->map[0][toi][toj] = maxr;
 		// 只有当进攻的兵力有富余时才算占领了，剩余0不认为是占领
 		if (occupy)
-			map[1][toi][toj] = 5 + user;
+			this->map[1][toi][toj] = 5 + user;
 	}
 	else if (type == user + 3 || type == user + 5 || type == user + 7) {
 		// 己方的土地或者city或者王城
-		map[0][toi][toj] += moveN;
+		this->map[0][toi][toj] += moveN;
 	}
 	else if (type == 6 - user || type == 4 - user) {
 		//  敌方的city或者土地
-		map[0][toi][toj] = maxr;
+		this->map[0][toi][toj] = maxr;
 		if (occupy) {
 			if (user == 0)
-				--map[1][toi][toj];
+				--this->map[1][toi][toj];
 			else
-				++map[1][toi][toj];
+				++this->map[1][toi][toj];
 		}
 	}
 	else if (type == 8 - user) { // 敌方的王城
-		map[0][toi][toj] = maxr;
+		this->map[0][toi][toj] = maxr;
 		if (occupy) {
-			map[1][toi][toj] = 7 + user;
+			this->map[1][toi][toj] = 7 + user;
 			finish = true;
 			winner = user;
 		}
-	}
+	} 
+    // else {
+    //     assert(0);
+    // }
 }
 
 
@@ -277,6 +290,7 @@ int Game::move(int move1[3], int move2[3],bool check=false)
     int to1[] = {move1[0] + movei[move1[2]], move1[1] + movej[move1[2]]};
     int to2[] = {move2[0] + movei[move2[2]], move2[1] + movej[move2[2]]};
     int *moveAll[2] = {move1, move2};
+    int moveN[2] = {-1,-1};
     bool legal1 = true, legal2 = true;
 	bool user0Stay = move1[0] == -1 && move1[1] == -1 && move1[2] == -1;
 	bool user1Stay = move2[0] == -1 && move2[1] == -1 && move2[2] == -1;
@@ -307,15 +321,20 @@ int Game::move(int move1[3], int move2[3],bool check=false)
         if (legal2 && map[1][to2[0]][to2[1]] == 1)
             legal2 = false;
     }
-	// 若不移动，则为合法
+	// 不移动为合法
 	if (user0Stay) legal1 = true; 
 	if (user1Stay) legal2 = true;
     if (!legal1 && !legal2) {errorcode=2; return 2;}
     if (!legal1)  {errorcode = 0; return 0;}
     if (!legal2)  {errorcode = 1; return 1;}
     // 若选择移动，则先把兵力调出，再考虑放入的问题
-    if (!user0Stay) map[0][move1[0]][move1[1]] = 1;
-    if (!user1Stay) map[0][move2[0]][move2[1]] = 1;
+    if (!user0Stay) {
+        moveN[0] = map[0][move1[0]][move1[1]]-1;
+        map[0][move1[0]][move1[1]] = 1; }
+    if (!user1Stay) {
+        moveN[1] = map[0][move2[0]][move2[1]]-1;
+        map[0][move2[0]][move2[1]] = 1;
+    } 
     if (!(
             to1[0] == to2[0] && to1[1] == to2[1] && 
             map[1][to1[0]][to1[1]] != 0 && (!user0Stay) && (!user1Stay)))
@@ -324,7 +343,7 @@ int Game::move(int move1[3], int move2[3],bool check=false)
             int *thismove = moveAll[user];
 			if (((user == 0) && user0Stay) || (user == 1) && user1Stay) 
 				continue;
-			move(thismove, user);
+			move(thismove, user, moveN[user]);
         }
     }
     // 当双方同时到达一块土地或者城市，以及某一方的王城时，需被额外考虑
@@ -334,9 +353,9 @@ int Game::move(int move1[3], int move2[3],bool check=false)
     // 若为王城被进攻的情况，让增援部队先加入，再让对方进攻
     else {
         int toi = to1[0], toj = to1[1];
-        int moveN1 = map[0][move1[0]][move1[1]]-1,moveN2=map[0][move2[0]][move2[1]]-1;
-        int moveN[] = {moveN1, moveN2};
-        int toN, type = map[0][toi][toj], map[1][toi][toj];
+        int moveN1 = moveN[0],moveN2=moveN[1];
+        // int moveN[] = {moveN1, moveN2};
+        int toN = map[0][toi][toj], type=map[1][toi][toj];
         int r1 = toN, r2 = moveN1, r3 = moveN2;
         fight(r1, r2, r3);
         bool occupy1 = r2 > 0, occupy2 = r3 > 0;
@@ -372,12 +391,16 @@ int Game::move(Json::Value move1_, Json::Value move2_,bool check=false) {
     return move(move1,move2,check);
 }
 
-void Game::mapWithFog() {
+void Game::mapCompute() {
     memset(mapVision1,-1,sizeof(mapVision1));
     memset(mapVision2,-1,sizeof(mapVision2));
+    memset(mapVisionBoth,-1,sizeof(mapVisionBoth));
+    memset(army,0,sizeof(army));
+    memset(land,0,sizeof(land));
     foi(height) foj(width) {
         fogDisplay1[i][j] = 1;
         fogDisplay2[i][j] = 1;
+        fogDisplayBoth[i][j] = 1;
     }
     foi(height) foj(width) {
         int type = map[1][i][j];
@@ -386,23 +409,35 @@ void Game::mapWithFog() {
             mapVision1[1][i][j] = map[1][i][j];
             mapVision2[0][i][j] = map[0][i][j];
             mapVision2[1][i][j] = map[1][i][j];
+            mapVisionBoth[0][i][j] = map[0][i][j];
+            mapVisionBoth[1][i][j] = map[1][i][j];
         } else if (type >= 3) { //被占据的地方
-            if (type % 2 == 1) { // 被user1占据
+            if (type % 2 == 1) { // 被user0占据
+                army[0] += map[0][i][j];
+                ++land[0];
                 for (int i1=0;i1<9;++i1) {
                     int newi = i + square9i[i1], newj = j + square9j[i1];
                         if (newi>=0 && newi<SquareHeight && newj>=0 && newj<SquareWidth) {
                             mapVision1[0][newi][newj] = map[0][newi][newj];
                             mapVision1[1][newi][newj] = map[1][newi][newj];    
+                            mapVisionBoth[0][newi][newj] = map[0][newi][newj];
+                            mapVisionBoth[1][newi][newj] = map[1][newi][newj];
                             fogDisplay1[newi][newj] = 0;
+                            fogDisplayBoth[newi][newj] = 0;
                         }
                 }
-            } else {
+            } else { // 被user1占据
+                army[1] += map[0][i][j];
+                ++land[1];
                 for (int i1=0;i1<9;++i1) {
-                    int newi = i + movei[i1], newj = j + movej[i1];
+                    int newi = i + square9i[i1], newj = j + square9j[i1];
                         if (newi>=0 && newi<SquareHeight && newj>=0 && newj<SquareWidth) {
                             mapVision2[0][newi][newj] = map[0][newi][newj];
                             mapVision2[1][newi][newj] = map[1][newi][newj];  
+                            mapVisionBoth[0][newi][newj] = map[0][newi][newj];
+                            mapVisionBoth[1][newi][newj] = map[1][newi][newj];
                             fogDisplay2[newi][newj] = 0;
+                            fogDisplayBoth[newi][newj] = 0;
 
                         }
                 }
@@ -464,6 +499,17 @@ void Game::printFinish() {
 	cout << writer.write(output) << endl;
 }
 
+inline int visionReverse(int num1) {
+    if (num1 > 2) {
+        if (num1 % 2 == 0) {
+            num1 --;
+        } else {
+            num1 ++;
+        }
+    }
+    return num1;
+}
+
 int main() {
 	// freopen("debug.in","r",stdin);
 	// freopen("debug.json","w",stdout);
@@ -473,48 +519,60 @@ int main() {
 	Json::Value input,log, output;
 	reader.parse(str, input);
     Game game;
-    output["content"]["0"]["size"][0] = SquareHeight;
-    output["content"]["0"]["size"][1] = SquareWidth;
-    output["content"]["1"]["size"][0] = SquareHeight;
-    output["content"]["1"]["size"][1] = SquareWidth;
+    output["content"]["0"]["size"][ind(0)] = SquareHeight;
+    output["content"]["0"]["size"][ind(1)] = SquareWidth;
+    output["content"]["1"]["size"][ind(0)] = SquareHeight;
+    output["content"]["1"]["size"][ind(1)] = SquareWidth;
     log = input["log"];
     if (log.size() == 0) {
         // display: TODO:
         game.initMap();
-        game.mapWithFog();
+        game.mapCompute();
         output["command"] = "request";
         output["initdata"]["height"] = game.height;
         output["initdata"]["width"] = game.width;
         output["display"]["status"] = "opening";
+        output["display"]["time"] = 0;
+        output["display"]["army"][ind(0)] = 4; output["display"]["land"][ind(0)] = 1;
+        output["display"]["army"][ind(1)] = 4; output["display"]["land"][ind(1)] = 1;
+        
         fok(2) foi(game.height) foj(game.width) {
-            output["content"]["0"]["map"][k][i][j] = game.mapVision1[k][i][j];
-            output["content"]["1"]["map"][k][i][j] = game.mapVision2[k][i][j];
-            output["display"]["0"]["map"][k][i][j] = game.mapVision1[k][i][j];
-            output["display"]["1"]["map"][k][i][j] = game.mapVision2[k][i][j];
+            output["content"]["0"]["map"][ind(k)][ind(i)][ind(j)] = game.mapVision1[k][i][j];
+            if (k == 1)
+                output["content"]["1"]["map"][ind(k)][ind(i)][ind(j)] = visionReverse(game.mapVision2[k][i][j]);
+            else
+                output["content"]["1"]["map"][ind(k)][ind(i)][ind(j)] = game.mapVision2[k][i][j];
+            output["display"]["user0"]["map"][ind(k)][ind(i)][ind(j)] = game.mapVision1[k][i][j];
+            output["display"]["user1"]["map"][ind(k)][ind(i)][ind(j)] = game.mapVision2[k][i][j];
+            output["display"]["both"]["map"][ind(k)][ind(i)][ind(j)] = game.mapVisionBoth[k][i][j];
             
-            output["initdata"]["map"][k][i][j] = game.map[k][i][j];
+            output["initdata"]["map"][ind(k)][ind(i)][ind(j)] = game.map[k][i][j];
+            output["display"]["full"]["map"][ind(k)][ind(i)][ind(j)] = game.map[k][i][j];
         }
-        output["content"]["0"]["history"]["num"] = 0;
-        output["content"]["1"]["history"]["num"] = 0;
+
         output["content"]["0"]["time"] = 0;
         output["content"]["1"]["time"] = 0;
 
         foi(game.height) foj(game.width) {
-            output["display"]["0"]["fog"][i][j] = game.fogDisplay1[i][j];
-            output["display"]["1"]["fog"][i][j] = game.fogDisplay2[i][j];
+            output["display"]["user0"]["fog"][ind(i)][ind(j)] = game.fogDisplay1[i][j];
+            output["display"]["user1"]["fog"][ind(i)][ind(j)] = game.fogDisplay2[i][j];
+            output["display"]["both"]["fog"][ind(i)][ind(j)] = game.fogDisplayBoth[i][j];
+            
         }
+
         foi(2) foj(2) 
-            output["initdata"]["generals"][i][j] = game.generals[i][j];
+            output["initdata"]["generals"][ind(i)][ind(j)] = game.generals[i][j];
         foi(2) {
-            output["content"]["0"]["generals"][i] = game.generals[0][i];
-            output["content"]["1"]["generals"][i] = game.generals[1][i];
-        } // 位置替换 TODO:
+            output["content"]["0"]["generals"][ind(i)] = game.generals[0][i];
+            output["content"]["1"]["generals"][ind(i)] = game.generals[1][i];
+        } 
     } else {
         game.loadMap(input["initdata"]);
         Json::Value opt1, opt2;
         int inputSize = input["log"].size();
         int legalAns ;
-		for (int i = 1; i < inputSize; i += 2) {
+        output["display"]["status"] = "opening";
+		for (ind i = 1; i < inputSize; i += 2) {
 			opt1 = input["log"][i]["0"]["response"];
 			opt2 = input["log"][i]["1"]["response"];
             if (i == inputSize-1)
@@ -524,27 +582,42 @@ int main() {
             ++game.currenttime ;
             game.scheduleAdd();
         }
+        output["display"]["time"] = game.currenttime;
+        // fixTODO: 
+        if (game.currenttime>=300) {
+            game.printFinish();
+            return 0;
+        }
         if (legalAns == 3) {
             if (!game.finish ) {
                 output["command"] = "request";
-                game.mapWithFog();
-                fok(2) foi(game.height) foj(game.width) {
-                    output["content"]["0"]["map"][k][i][j] = game.mapVision1[k][i][j];
-                    output["content"]["1"]["map"][k][i][j] = game.mapVision2[k][i][j];
+                game.mapCompute();
+              
+                
+                foi(game.height) foj(game.width) {
+                    output["content"]["0"]["map"][ind(0)][ind(i)][ind(j)] = game.mapVision1[0][i][j];
+                    output["content"]["0"]["map"][ind(1)][ind(i)][ind(j)] = game.mapVision1[1][i][j];
+                    output["content"]["1"]["map"][ind(0)][ind(i)][ind(j)] = game.mapVision2[0][i][j];
+                    output["content"]["1"]["map"][ind(1)][ind(i)][ind(j)] = visionReverse(game.mapVision2[1][i][j]);
+
+                    output["display"]["user0"]["fog"][ind(i)][ind(j)] = game.fogDisplay1[i][j];
+                    output["display"]["user1"]["fog"][ind(i)][ind(j)] = game.fogDisplay2[i][j];
+                    output["display"]["both"]["fog"][ind(i)][ind(j)] = game.fogDisplayBoth[i][j];
                 }
                 foi(2) {
-                    output["content"]["0"]["generals"][i] = game.generals[0][i];
-                    output["content"]["1"]["generals"][i] = game.generals[1][i];
+                    output["content"]["0"]["generals"][ind(i)] = game.generals[0][i];
+                    output["content"]["1"]["generals"][ind(i)] = game.generals[1][i];
+                    output["display"]["army"][ind(i)] = game.army[i];
+                    output["display"]["land"][ind(i)] = game.land[i];
                 }
-                int history_num = output["content"]["0"]["history"]["num"].asInt();
-                output["content"]["0"]["history"] = log[inputSize-2]["output"]["content"]["0"]["history"];
-                output["content"]["1"]["history"] = log[inputSize-2]["output"]["content"]["1"]["history"];
-                output["content"]["0"]["history"]["list"][history_num]["map"] =  log[inputSize-2]["output"]["content"]["0"]["map"];
-                output["content"]["1"]["history"]["list"][history_num]["map"] =  log[inputSize-2]["output"]["content"]["1"]["map"];
-                output["content"]["0"]["history"]["list"][history_num]["move"] = log[inputSize-1]["0"]["response"];
-                output["content"]["1"]["history"]["list"][history_num]["move"] = log[inputSize-1]["1"]["response"];
-                output["content"]["0"]["history"]["num"] = history_num +1;
-                output["content"]["1"]["history"]["num"] = history_num +1;
+                fok(2) foi(game.height) foj(game.width) {
+                    output["display"]["full"]["map"][ind(k)][ind(i)][ind(j)] = game.map[k][i][j];
+                    output["display"]["user0"]["map"][ind(k)][ind(i)][ind(j)] = game.mapVision1[k][i][j];
+                    output["display"]["user1"]["map"][ind(k)][ind(i)][ind(j)] = game.mapVision2[k][i][j];
+                    output["display"]["both"]["map"][ind(k)][ind(i)][ind(j)] = game.mapVisionBoth[k][i][j];
+                }
+
+
                 output["content"]["0"]["time"] = game.currenttime ;
                 output["content"]["1"]["time"] = game.currenttime ;
                 // display TODO:

@@ -3,12 +3,16 @@
 #include <fstream>
 
 #include "../jsoncpp/json.h"
+#define foi(n) for (int i = 0; i < n; ++i)
+#define foj(n) for (int j = 0; j < n; ++j)
+#define fok(n) for (int k = 0; k < n; ++k)
+#define fouser for (int user = 0; user < 2; ++user)
 
 using namespace std;
 
 Json::Reader reader;
 Json::Value input,output,logg;
-
+Json::FastWriter writer;
 ifstream ifs;
 ofstream ofs;
 
@@ -19,14 +23,20 @@ void begin_game() {
     // ofs.close();
 }
 void userin(int user) {
-    string st="1";
-    if (user == 0) st = "0";
-    output["map"] = input["content"][st]["map"];
-    output["size"] = input["content"][st]["size"];
-    output["history"] = input["content"][st]["history"];
-    output["time"] = input["content"][st]["time"];
-    Json::FastWriter writer;
-	cout << writer.write(output) << endl;
+    string path="./runfile/bot0in.json",st="1";
+    if (user == 0) {st = "0"; path = "./runfile/bot1in.json";} 
+    
+    ifs.open(path,ios_base::in);
+    if (!ifs.is_open()) {cout << "error opening"; return;}
+    string st1;
+    ifs >> st1;
+    reader.parse(st1, logg);
+    int requestNum,responseNum;
+    requestNum = logg["request"].size();
+    responseNum = logg["response"].size();
+    logg["request"][requestNum] = input["content"][st];
+    
+	cout << writer.write(logg) << endl;
 }
 void userout(int user) {
     cout << "userin " << user << endl;
@@ -44,16 +54,15 @@ void logjudge() {
     logg["log"][lengt]["output"]["content"] = input["content"];
     logg["num"] = logg["num"].asInt() + 1;
     ofs.open("./runfile/log.json");
-    Json::FastWriter writer;
+
 	ofs << writer.write(logg);
     ofs.close();
 }
 
-void logbot(int user) {
-    Json::FastWriter writer;
+void logbot(int user) { 
+    string path="./runfile/bot0in.json",st="1";
+    if (user == 0) {st = "0"; path = "./runfile/bot1in.json";} 
 
-    // string st = "0";
-    // if (user == 1) st = "1";
     ifs.open("./runfile/log.json",ios_base::in);
     if (!ifs.is_open()) {cout << "error opening"; return;}
     string st1;
@@ -62,17 +71,21 @@ void logbot(int user) {
     ofs.open("./runfile/log.json");
     reader.parse(st1, logg);
     int lengt = logg["num"].asInt();
-
     if (user == 0) {
         logg["log"][lengt]["0"]["response"] = input;
         logg["num"] = logg["num"].asInt() + 1;        
-    }
-    else 
+    } else 
         logg["log"][lengt-1]["1"]["response"] = input;
-    
 	ofs << writer.write(logg) ;
     ofs.close();
 
+    ifs.open(path,ios_base::in);
+    if (!ifs.is_open()) {cout << "error opening"; return;}
+    ifs >> st1; reader.parse(st1, logg);
+    ifs.close();
+    int responseNum = logg["response"].size();
+    logg["response"][responseNum] = input;
+    cout << writer.write(logg) << endl;
 }
 
 void loginitdata() {
@@ -101,6 +114,11 @@ void statecheck() {
         cout << "error";
     }
 }
+
+
+
+
+
 
 int main(int args, char * argv[]) {
     string str;
@@ -132,6 +150,7 @@ int main(int args, char * argv[]) {
         }
         return 0;
     } 
+
     if (strcmp(argv[1],"log") == 0) {
         if (strcmp(argv[2],"judge") == 0) {
             logjudge();

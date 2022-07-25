@@ -5,14 +5,14 @@ from matplotlib.pyplot import close
 processFunc = lambda s: " ".join(s.split())
 
 
-
-jsonfile = open('./debug.json',mode="r") 
+path = './debug.json'
+jsonfile = open(path,mode="r") 
 jsonstr:str = jsonfile.read()
 print(jsonstr)
 jsonstr = processFunc(jsonstr)
 
 jsonfile = close()
-jsonfile = open('./debug.json',mode="w") 
+jsonfile = open(path,mode="w") 
 jsonfile.write(jsonstr)
 jsonfile = close()
 
