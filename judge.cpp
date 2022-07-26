@@ -7,7 +7,6 @@
 #include "jsoncpp/json.h"
 #define ind Json::Value::ArrayIndex
 
-#define TTO 500
 #define foi(n) for (int i = 0; i < n; ++i)
 #define foj(n) for (int j = 0; j < n; ++j)
 #define fok(n) for (int k = 0; k < n; ++k)
@@ -16,7 +15,8 @@
 using namespace std;
 const int SquareHeight = 16;
 const int SquareWidth = 16;
-int InitGeneralsNum = 4;
+const int TTO = 500;
+const int InitGeneralsNum = 10;
 int movei[] = {-1, 1, 0, 0, 0};
 int movej[] = {0, 0, -1, 1, 0};
 int square9i[9] = {
@@ -72,10 +72,10 @@ public:
     int map[2][SquareHeight][SquareWidth];
     int mapVision1[2][SquareHeight][SquareWidth];
     int mapVision2[2][SquareHeight][SquareWidth];
-    int mapVisionBoth[2][SquareHeight][SquareWidth];
-    int fogDisplay1[SquareHeight][SquareWidth];
-    int fogDisplay2[SquareHeight][SquareWidth];
-    int fogDisplayBoth[SquareHeight][SquareWidth];
+    // int mapVisionBoth[2][SquareHeight][SquareWidth];
+    // int fogDisplay1[SquareHeight][SquareWidth];
+    // int fogDisplay2[SquareHeight][SquareWidth];
+    // int fogDisplayBoth[SquareHeight][SquareWidth];
     int army[2];
     int land[2];
 
@@ -96,7 +96,7 @@ public:
         memset(map,0,sizeof(map));
         memset(mapVision1,0,sizeof(mapVision1));
         memset(mapVision2,0,sizeof(mapVision2));
-        memset(mapVisionBoth,0,sizeof(mapVisionBoth));
+        // memset(mapVisionBoth,0,sizeof(mapVisionBoth));
     }
     void initMap();
     bool generalsCheck();
@@ -410,7 +410,7 @@ int Game::move(int move1[3], int move2[3],bool check=false)
         if (type == 2) {
             map[0][toi][toj] = r1 + r2 + r3;
             if (occupy1 || occupy2) {
-                map[0][toi][toj] = 5 ? occupy1 : 6;
+                map[1][toi][toj] = 5 ? occupy1 : 6;
             }
         }
         else { // 已被某一方占据的土地
@@ -419,8 +419,13 @@ int Game::move(int move1[3], int move2[3],bool check=false)
             toN += defenceN ; // 先加上增援部队
             bool occupy = enemyN > toN;
             map[0][toi][toj] = abs(enemyN-toN);
-            if (occupy)
-                map[1][toi][toj] = type +1 ? belong == 0:type-1;
+            if (occupy) {
+                if (belong == 0) {this->map[1][toi][toj] = type +1;} 
+                else { this->map[1][toi][toj] = type -1;} 
+                // this->map[1][toi][toj] = (type +1) ? (belong == 0):(type-1);
+            }
+                
+                
             if (occupy && type >= 7) { // 王城被攻下
                 finish = true;
                 winner = 1-belong;
@@ -442,14 +447,9 @@ int Game::move(Json::Value move1_, Json::Value move2_,bool check=false) {
 void Game::mapCompute() {
     memset(mapVision1,-1,sizeof(mapVision1));
     memset(mapVision2,-1,sizeof(mapVision2));
-    memset(mapVisionBoth,-1,sizeof(mapVisionBoth));
     memset(army,0,sizeof(army));
     memset(land,0,sizeof(land));
-    foi(height) foj(width) {
-        fogDisplay1[i][j] = 1;
-        fogDisplay2[i][j] = 1;
-        fogDisplayBoth[i][j] = 1;
-    }
+
     foi(height) foj(width) {
         int type = map[1][i][j];
         if (type == 1) {
@@ -457,8 +457,6 @@ void Game::mapCompute() {
             mapVision1[1][i][j] = map[1][i][j];
             mapVision2[0][i][j] = map[0][i][j];
             mapVision2[1][i][j] = map[1][i][j];
-            mapVisionBoth[0][i][j] = map[0][i][j];
-            mapVisionBoth[1][i][j] = map[1][i][j];
         } else if (type >= 3) { //被占据的地方
             if (type % 2 == 1) { // 被user0占据
                 army[0] += map[0][i][j];
@@ -468,10 +466,6 @@ void Game::mapCompute() {
                         if (newi>=0 && newi<SquareHeight && newj>=0 && newj<SquareWidth) {
                             mapVision1[0][newi][newj] = map[0][newi][newj];
                             mapVision1[1][newi][newj] = map[1][newi][newj];    
-                            mapVisionBoth[0][newi][newj] = map[0][newi][newj];
-                            mapVisionBoth[1][newi][newj] = map[1][newi][newj];
-                            fogDisplay1[newi][newj] = 0;
-                            fogDisplayBoth[newi][newj] = 0;
                         }
                 }
             } else { // 被user1占据
@@ -482,11 +476,6 @@ void Game::mapCompute() {
                         if (newi>=0 && newi<SquareHeight && newj>=0 && newj<SquareWidth) {
                             mapVision2[0][newi][newj] = map[0][newi][newj];
                             mapVision2[1][newi][newj] = map[1][newi][newj];  
-                            mapVisionBoth[0][newi][newj] = map[0][newi][newj];
-                            mapVisionBoth[1][newi][newj] = map[1][newi][newj];
-                            fogDisplay2[newi][newj] = 0;
-                            fogDisplayBoth[newi][newj] = 0;
-
                         }
                 }
             }
@@ -524,7 +513,7 @@ void Game::printError() {
     output["display"]["status"] = "error";
     output["display"]["time"] = this->currenttime;   
 
-    // display: TODO:
+
 
 	Json::FastWriter writer;
 	cout << writer.write(output) << endl;
@@ -550,26 +539,19 @@ void Game::printFinish() {
     output["content"]["1"] = score[1];
     output["display"]["finishcode"] = winner;
     this->mapCompute();
-    foi(this->height) foj(this->width) {
-        output["display"]["user0"]["fog"][ind(i)][ind(j)] = this->fogDisplay1[i][j];
-        output["display"]["user1"]["fog"][ind(i)][ind(j)] = this->fogDisplay2[i][j];
-        output["display"]["both"]["fog"][ind(i)][ind(j)] = this->fogDisplayBoth[i][j];
-    }
+
     foi(2) {
         output["display"]["army"][ind(i)] = this->army[i];
         output["display"]["land"][ind(i)] = this->land[i];
     }
     fok(2) foi(this->height) foj(this->width) {
-        output["display"]["full"]["map"][ind(k)][ind(i)][ind(j)] = this->map[k][i][j];
-        output["display"]["user0"]["map"][ind(k)][ind(i)][ind(j)] = this->mapVision1[k][i][j];
-        output["display"]["user1"]["map"][ind(k)][ind(i)][ind(j)] = this->mapVision2[k][i][j];
-        output["display"]["both"]["map"][ind(k)][ind(i)][ind(j)] = this->mapVisionBoth[k][i][j];
+        output["display"]["map"][ind(k)][ind(i)][ind(j)] = this->map[k][i][j];
     }
     output["display"]["status"] = "finish";
     output["display"]["time"] = this->currenttime;   
 
 
-    // display TODO:
+
 	Json::FastWriter writer;
 	cout << writer.write(output) << endl;
 }
@@ -610,30 +592,22 @@ int main() {
         output["display"]["time"] = 0;
         output["display"]["army"][ind(0)] = 4; output["display"]["land"][ind(0)] = 1;
         output["display"]["army"][ind(1)] = 4; output["display"]["land"][ind(1)] = 1;
-        
+        output["content"]["0"]["enemy"][ind(0)] = InitGeneralsNum;
+        output["content"]["0"]["enemy"][ind(1)] = 1;
+        output["content"]["1"]["enemy"][ind(0)] = InitGeneralsNum;
+        output["content"]["1"]["enemy"][ind(1)] = 1;
         fok(2) foi(game.height) foj(game.width) {
             output["content"]["0"]["map"][ind(k)][ind(i)][ind(j)] = game.mapVision1[k][i][j];
             if (k == 1)
                 output["content"]["1"]["map"][ind(k)][ind(i)][ind(j)] = visionReverse(game.mapVision2[k][i][j]);
             else
-                output["content"]["1"]["map"][ind(k)][ind(i)][ind(j)] = game.mapVision2[k][i][j];
-            output["display"]["user0"]["map"][ind(k)][ind(i)][ind(j)] = game.mapVision1[k][i][j];
-            output["display"]["user1"]["map"][ind(k)][ind(i)][ind(j)] = game.mapVision2[k][i][j];
-            output["display"]["both"]["map"][ind(k)][ind(i)][ind(j)] = game.mapVisionBoth[k][i][j];
-            
+                output["content"]["1"]["map"][ind(k)][ind(i)][ind(j)] = game.mapVision2[k][i][j];         
             output["initdata"]["map"][ind(k)][ind(i)][ind(j)] = game.map[k][i][j];
-            output["display"]["full"]["map"][ind(k)][ind(i)][ind(j)] = game.map[k][i][j];
+            output["display"]["map"][ind(k)][ind(i)][ind(j)] = game.map[k][i][j];
         }
 
         output["content"]["0"]["time"] = 0;
         output["content"]["1"]["time"] = 0;
-
-        foi(game.height) foj(game.width) {
-            output["display"]["user0"]["fog"][ind(i)][ind(j)] = game.fogDisplay1[i][j];
-            output["display"]["user1"]["fog"][ind(i)][ind(j)] = game.fogDisplay2[i][j];
-            output["display"]["both"]["fog"][ind(i)][ind(j)] = game.fogDisplayBoth[i][j];
-            
-        }
 
         foi(2) foj(2) 
             output["initdata"]["generals"][ind(i)][ind(j)] = game.generals[i][j];
@@ -675,10 +649,6 @@ int main() {
                     output["content"]["0"]["map"][ind(1)][ind(i)][ind(j)] = game.mapVision1[1][i][j];
                     output["content"]["1"]["map"][ind(0)][ind(i)][ind(j)] = game.mapVision2[0][i][j];
                     output["content"]["1"]["map"][ind(1)][ind(i)][ind(j)] = visionReverse(game.mapVision2[1][i][j]);
-
-                    output["display"]["user0"]["fog"][ind(i)][ind(j)] = game.fogDisplay1[i][j];
-                    output["display"]["user1"]["fog"][ind(i)][ind(j)] = game.fogDisplay2[i][j];
-                    output["display"]["both"]["fog"][ind(i)][ind(j)] = game.fogDisplayBoth[i][j];
                 }
                 foi(2) {
                     output["content"]["0"]["generals"][ind(i)] = game.generals[0][i];
@@ -687,15 +657,15 @@ int main() {
                     output["display"]["land"][ind(i)] = game.land[i];
                 }
                 fok(2) foi(game.height) foj(game.width) {
-                    output["display"]["full"]["map"][ind(k)][ind(i)][ind(j)] = game.map[k][i][j];
-                    output["display"]["user0"]["map"][ind(k)][ind(i)][ind(j)] = game.mapVision1[k][i][j];
-                    output["display"]["user1"]["map"][ind(k)][ind(i)][ind(j)] = game.mapVision2[k][i][j];
-                    output["display"]["both"]["map"][ind(k)][ind(i)][ind(j)] = game.mapVisionBoth[k][i][j];
+                    output["display"]["map"][ind(k)][ind(i)][ind(j)] = game.map[k][i][j];
                 }
-
 
                 output["content"]["0"]["time"] = game.currenttime ;
                 output["content"]["1"]["time"] = game.currenttime ;
+                output["content"]["0"]["enemy"][ind(0)] = game.army[1];
+                output["content"]["0"]["enemy"][ind(1)] = game.land[1];
+                output["content"]["1"]["enemy"][ind(0)] = game.army[0];
+                output["content"]["1"]["enemy"][ind(1)] = game.land[0];
                 // display TODO:
             } else {
                 game.printFinish();

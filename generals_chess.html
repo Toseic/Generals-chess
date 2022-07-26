@@ -63,7 +63,7 @@
 
 		.city {
 			/* background-image: url("./img/city.png"); */
-			background-image: url("https://generals.io/city.png");
+			background-image: url("Generals-chess/img/city.png");
 			background-color: gray;
 			background-position: center center;
 			background-repeat: no-repeat;
@@ -73,7 +73,7 @@
 
 		.mountain {
 			/* background-image: url("./img/mountain.png"); */
-			background-image: url("https://generals.io/mountain.png");
+			background-image: url("Generals-chess/img/mountain.png");
 			background-color: rgb(187, 187, 187);
 			background-position: center center;
 			background-repeat: no-repeat;
@@ -81,8 +81,6 @@
 		}
 
 		.mountain.fog {
-			/* background-image: url("./img/mountain.png"); */
-			/* background-image: url("./img/mountain.png"); */
 			background-color: rgba(255, 255, 255, 0.1);
 			background-position: center center;
 			background-repeat: no-repeat;
@@ -91,7 +89,7 @@
 
 		.general {
 			/* background-image: url("./img/crown.png"); */
-			background-image: url("https://generals.io/crown.png");
+			background-image: url("Generals-chess/img/crown.png");
 			background-position: center center;
 			background-repeat: no-repeat;
 		}
@@ -174,7 +172,8 @@
 		@font-face {
 			font-family: Quicksand;
 			/* src: url('https://generals.io/Quicksand-Regular.otf') */
-			src: url('https://filip5336.github.io/Fonty/Quicksand-Regular.otf')
+			/* src: url('https://filip5336.github.io/Fonty/Quicksand-Regular.otf') */
+			src: url('Generals-chess/Quicksand-Regular.otf')
 				/* https://toseic.github.io/font/Quicksand-Regular.otf */
 				/* src: url('https://github.com/Toseic/Generals-chess/blob/main/font/Quicksand-Regular.otf') */
 		}
@@ -432,36 +431,90 @@
 				return `<div style="color:blue;">${e}</div>`;
 			}
 		}
+		function foguserJudge(foguser,type) {
+			if (foguser == 0 || foguser == 1) {
+				if (type == 3+foguser || type == 5+foguser || type == 7+foguser) {
+					return true;
+				}
+			} else {
+				if (type > 2) {
+					return true;
+				}
+			}
+			return false;
+		}
+		function dataCompute(fullmap) {
+			var pov0 = $("#pov0").is(':checked');
+			var pov1 = $("#pov1").is(':checked');
+			const square9i = [
+				-1,-1,-1,
+				0 ,0 ,0,
+				1 ,1 ,1
+			];
+			const square9j = [
+				-1,0,1,
+				-1,0,1,
+				-1,0,1,
+			];
+			var data = {};
+
+			if (povallow && (!pov0) && (!pov1)) {
+				fogDisplay = false;
+				data.map = fullmap
+				return data;
+			}
+			var foguser;
+			data.map = [];
+			data.map[0] = Array.from({length:height},()=>Array(width).fill(0));
+			data.map[1] = Array.from({length:height},()=>Array(width).fill(-1));
+			// data.map[0] = map0; data.map[1] = map1;
+			data.fog = Array.from({length:height},()=>Array(width).fill(1));
+			if (!povallow) foguser = user;
+			else if (pov0 && pov1) foguser = 2;
+			else if (pov0) foguser = 0;
+			else if (pov1) foguser = 1;
+			fogDisplay = true;
+
+			for (let i = 0; i < height; ++i) { for (let j = 0; j < width; ++j) {
+				var num = fullmap[0][i][j];
+				var type = fullmap[1][i][j];
+				if (type == 1) {
+					data.map[0][i][j] = 0;
+					data.map[1][i][j] = 1;
+				} else if (foguserJudge(foguser,type)) {
+					for (let k=0;k<9;++k) {
+						let newi = i+square9i[k];
+						let newj = j+square9j[k];
+						if (!(newi<0 || newi>=height || newj<0 || newj>=width)) {
+							console.log(newi,newj,k);
+							data.fog[newi][newj] = 0;
+							data.map[0][newi][newj] = fullmap[0][newi][newj];
+							data.map[1][newi][newj] = fullmap[1][newi][newj];
+						}
+					}
+				}
+			}}
+			return data;
+		}
 		function displayHandler(cb) {
 			timeboard.innerText = "Time: " + String(cb.time);
 			if (cb.status === "open" || cb.status === "finish") {
-				var data;
+				
 				redarmy.innerText = cb.army[0];
 				bluearmy.innerText = cb.army[1];
 				redland.innerText = cb.land[0];
 				blueland.innerText = cb.land[1];
 				$("#messagebar").css("visibility", "hidden");
-
-				if (!povallow) {
-					if (user == 0) data = cb.user0;
-					else data = cb.user1;
-				} else if (povallow) {
-					var pov0 = $("#pov0").is(':checked');
-					var pov1 = $("#pov1").is(':checked');
-					if (!pov0 && !pov1) { data = cb.full; fogDisplay = false; }
-					else if (pov0 && pov1) { data = cb.both; fogDisplay = true; }
-					else if (pov0) { data = cb.user0; fogDisplay = true; }
-					else if (pov1) { data = cb.user1; fogDisplay = true; }
-
-				}
+				var showdata = dataCompute(cb.map);
 				for (let i = 0; i < height; ++i) {
 					for (let j = 0; j < width; ++j) {
-						game.map[i][j].num = data.map[0][i][j];
-						var type_ = data.map[1][i][j];
+						game.map[i][j].num = showdata.map[0][i][j];
+						// console.log(i,j);
+						var type_ = showdata.map[1][i][j];
 						if (fogDisplay) {
-							game.map[i][j].setfog(data.fog[i][j]);
+							game.map[i][j].setfog(showdata.fog[i][j]);
 							game.map[i][j].type = -1;
-							if (type_ == 1 || data.fog[i][j] == 0) {
+							if (type_ == 1 || showdata.fog[i][j] == 0) {
 								game.map[i][j].type = type_;
 							}
 						} else {
@@ -522,11 +575,7 @@
 				game.chooseAction(k);
 			}
 		};
-
-
 		infoProvider.notifyInitComplete();
-
-
 	</script>
 </body>
 
