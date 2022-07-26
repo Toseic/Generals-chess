@@ -13,7 +13,8 @@ deploy
 *engine*
 /botzone/runfile/
 /bot/bot
-
 */*dSYM*/*
 randbot
 randbot_botzone
+errorbot.cpp
+*ignore*
