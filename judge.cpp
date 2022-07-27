@@ -1,3 +1,11 @@
+/*
+
+Author: Tosey
+Datetime: 2022-07-27
+Github: https://github.com/Toseic/Generals-chess
+
+*/
+
 #include <iostream>
 #include <cmath>
 #include <algorithm>
@@ -17,17 +25,24 @@ const int SquareHeight = 16;
 const int SquareWidth = 16;
 const int TTO = 500;
 const int InitGeneralsNum = 10;
+const int squareScheduleAddTime = 8;
 int movei[] = {-1, 1, 0, 0, 0};
 int movej[] = {0, 0, -1, 1, 0};
+
 int square9i[9] = {
-    -1,-1,-1,
-    0 ,0 ,0,
-    1 ,1 ,1
-};
+    -1, -1, -1,
+    0, 0, 0,
+    1, 1, 1};
 int square9j[9] = {
-    -1,0,1,
-    -1,0,1,
-    -1,0,1,
+    -1,
+    0,
+    1,
+    -1,
+    0,
+    1,
+    -1,
+    0,
+    1,
 
 };
 int errorPerson = -1;
@@ -40,50 +55,44 @@ inline int randint(int low, int high)
     return target;
 }
 
-// color:
-// user1 red
-// user2 blue
-// map:
-// map[0]:
-//     表示方格中的值
-// map[1]: 表示方格的类型
-//     -1: 被迷雾遮挡不显示
-//     0: 无人占领的土地
-//     1: 山地
-//     2: 无人占领的城市
-//     3: user1占领的土地
-//     4: user2占领的土地
-//     5: user1占领的城市
-//     6: user2占领的城市
-//     7: user1的王城
-//     8: user2的王城
-// move: list
-// [i,j,d]
-// winner:
-// 0: user1 
-// 1: user2
-// 2: draw
-// -1: unknown
-class Game
-{
+/*color:
+user1 red
+user2 blue
+map:
+map[0]:
+    表示方格中的值
+map[1]: 表示方格的类型
+    -1: 被迷雾遮挡不显示
+    0: 无人占领的土地
+    1: 山地
+    2: 无人占领的城市
+    3: user1占领的土地
+    4: user2占领的土地
+    5: user1占领的城市
+    6: user2占领的城市
+    7: user1的王城
+    8: user2的王城
+move: list
+[i,j,d]
+winner:
+0: user1
+1: user2
+2: draw
+-1: unknown */
+class Game {
 public:
     int height, width;
     int generals[2][2];
     int map[2][SquareHeight][SquareWidth];
     int mapVision1[2][SquareHeight][SquareWidth];
     int mapVision2[2][SquareHeight][SquareWidth];
-    // int mapVisionBoth[2][SquareHeight][SquareWidth];
-    // int fogDisplay1[SquareHeight][SquareWidth];
-    // int fogDisplay2[SquareHeight][SquareWidth];
-    // int fogDisplayBoth[SquareHeight][SquareWidth];
     int army[2];
     int land[2];
 
     bool finish;
-    int winner,errorcode;
-    int currenttime;
+    int winner, errorcode, currenttime;
     string errormessage[2];
-    
+
     Game(int height_ = SquareHeight, int width_ = SquareWidth)
     {
         height = height_;
@@ -93,9 +102,9 @@ public:
         finish = false;
         errormessage[0] = "";
         errormessage[1] = "";
-        memset(map,0,sizeof(map));
-        memset(mapVision1,0,sizeof(mapVision1));
-        memset(mapVision2,0,sizeof(mapVision2));
+        memset(map, 0, sizeof(map));
+        memset(mapVision1, 0, sizeof(mapVision1));
+        memset(mapVision2, 0, sizeof(mapVision2));
         // memset(mapVisionBoth,0,sizeof(mapVisionBoth));
     }
     void initMap();
@@ -120,7 +129,6 @@ bool Game::generalsCheck()
     float distance = sqrt((generals[0][0] - generals[1][0]) * (generals[0][0] - generals[1][0]) +
                           (generals[0][1] - generals[1][1]) * (generals[0][1] - generals[1][1]));
     if (distance < (height + width) / 4)
-    // if (distance > (height + width) / 6)
         return false;
     return true;
 }
@@ -202,16 +210,18 @@ void Game::initMap()
 
 void Game::fight(int &n1, int &n2)
 {
-    if (n1<n2) {
-        n2 -= n1; n1 = 0;
-    } else {
-        n1 -= n2; n2 = 0;
+    if (n1 < n2) {
+        n2 -= n1;
+        n1 = 0;
+    }
+    else {
+        n1 -= n2;
+        n2 = 0;
     }
 }
 
-void Game::fight(int &f1, int &n1, int &n2)
-{
-    int f1_=f1,n1_=n1,n2_=n2;
+void Game::fight(int &f1, int &n1, int &n2) {
+    int f1_ = f1, n1_ = n1, n2_ = n2;
     int numb[] = {f1_, n1_, n2_};
     int point = 1 ? n1_ >= n2_ : 2;
     int lef1 = abs(numb[point] - f1_);
@@ -225,64 +235,58 @@ void Game::fight(int &f1, int &n1, int &n2)
     n2 = ret[2];
 }
 
-void Game::scheduleAdd()
-{
-    if (currenttime % 8 == 0)
-    {
+void Game::scheduleAdd() {
+    if (currenttime % squareScheduleAddTime == 0) {
         foi(height) foj(width) if (map[1][i][j] >= 3)++ map[0][i][j];
     }
-    else if (currenttime % 2 == 0)
-    {
+    else if (currenttime % 2 == 0) {
         foi(height) foj(width) if (map[1][i][j] >= 5)++ map[0][i][j];
     }
 }
 
 void Game::move(int move[3], int user, int moveN) {
-	int toi = move[0] + movei[move[2]], toj = move[1] + movej[move[2]];
-	int toN = this->map[0][toi][toj], type=this->map[1][toi][toj];
-	int r1 = toN, r2 = moveN;
-	fight(r1, r2);
-	int maxr = r1 + r2;
-	bool occupy = r2 > 0;
-	if (type == 0) {   // free square
-		this->map[1][toi][toj] = 3 + user; // 3:user1 4:user2
-		this->map[0][toi][toj] = moveN;
-	}
-	else if (type == 2) { // free city
-		this->map[0][toi][toj] = maxr;
-		// 只有当进攻的兵力有富余时才算占领了，剩余0不认为是占领
-		if (occupy)
-			this->map[1][toi][toj] = 5 + user;
-	}
-	else if (type == user + 3 || type == user + 5 || type == user + 7) {
-		// 己方的土地或者city或者王城
-		this->map[0][toi][toj] += moveN;
-	}
-	else if (type == 6 - user || type == 4 - user) {
-		//  敌方的city或者土地
-		this->map[0][toi][toj] = maxr;
-		if (occupy) {
-			if (user == 0)
-				--this->map[1][toi][toj];
-			else
-				++this->map[1][toi][toj];
-		}
-	}
-	else if (type == 8 - user) { // 敌方的王城
-		this->map[0][toi][toj] = maxr;
-		if (occupy) {
-			this->map[1][toi][toj] = 7 + user;
-			finish = true;
-			winner = user;
-		}
-	} 
-    // else {
-    //     assert(0);
-    // }
+    int toi = move[0] + movei[move[2]], toj = move[1] + movej[move[2]];
+    int toN = this->map[0][toi][toj], type = this->map[1][toi][toj];
+    int r1 = toN, r2 = moveN;
+    fight(r1, r2);
+    int maxr = r1 + r2;
+    bool occupy = r2 > 0;
+    if (type == 0) {                                      // free square
+        this->map[1][toi][toj] = 3 + user; // 3:user1 4:user2
+        this->map[0][toi][toj] = moveN;
+    }
+    else if (type == 2) { // free city
+        this->map[0][toi][toj] = maxr;
+        // 只有当进攻的兵力有富余时才算占领了，剩余0不认为是占领
+        if (occupy)
+            this->map[1][toi][toj] = 5 + user;
+    }
+    else if (type == user + 3 || type == user + 5 || type == user + 7) {
+        // 己方的土地或者city或者王城
+        this->map[0][toi][toj] += moveN;
+    }
+    else if (type == 6 - user || type == 4 - user) {
+        //  敌方的city或者土地
+        this->map[0][toi][toj] = maxr;
+        if (occupy) {
+            if (user == 0)
+                --this->map[1][toi][toj];
+            else
+                ++this->map[1][toi][toj];
+        }
+    }
+    else if (type == 8 - user) { // 敌方的王城
+        this->map[0][toi][toj] = maxr;
+        if (occupy) {
+            this->map[1][toi][toj] = 7 + user;
+            finish = true;
+            winner = user;
+        }
+    }
+
 }
 
-
-int Game::move(int move1[3], int move2[3],bool check=false)
+int Game::move(int move1[3], int move2[3], bool check = false)
 {
     /*  return 3 OK
         return 0 user1 error
@@ -292,106 +296,128 @@ int Game::move(int move1[3], int move2[3],bool check=false)
     string messageMap[] = {
         "非法方向",
         "非法起始位置",
+        "起始位置土地不可被你移动",
         "移动终点超出地图",
         "起始位置士兵数量不足",
         "移动终点不能为山地",
     };
 
     int *moveAll[2] = {move1, move2};
-    int moveN[2] = {-1,-1};
+    int moveN[2] = {-1, -1};
     bool legal1 = true, legal2 = true;
-	bool user0Stay = move1[0] == -1 && move1[1] == -1 && move1[2] == -1;
-	bool user1Stay = move2[0] == -1 && move2[1] == -1 && move2[2] == -1;
+    
+    bool user0Stay = move1[0] == -1 && move1[1] == -1 && move1[2] == -1;
+    bool user1Stay = move2[0] == -1 && move2[1] == -1 && move2[2] == -1;
     if (check) {
         // 方向非法
-        if (move1[2] < -1 || move1[2]>3) {
-            legal1 = false; move1[2]=0; 
-            errormessage[0]+=messageMap[0];
+        if (move1[2] < -1 || move1[2] > 3) {
+            legal1 = false;
+            move1[2] = 0;
+            errormessage[0] += messageMap[0];
         }
-        if (move2[2] < -1 || move2[2]>3) {
-            legal2 = false; move2[2]=0;
-            errormessage[1]+=messageMap[0];
+        if (move2[2] < -1 || move2[2] > 3) {
+            legal2 = false;
+            move2[2] = 0;
+            errormessage[1] += messageMap[0];
         }
         int to1[] = {move1[0] + movei[move1[2]], move1[1] + movej[move1[2]]};
         int to2[] = {move2[0] + movei[move2[2]], move2[1] + movej[move2[2]]};
-        if (user0Stay) {legal1 = false; }
-        if (user1Stay) {legal2 = false; }
-        // 起始位置非法 
-        if (legal1 && !((map[1][move1[0]][move1[1]] == 3) ||
-            (map[1][move1[0]][move1[1]] == 5) ||
-            (map[1][move1[0]][move1[1]] == 7))) {
-                legal1 = false;
-                errormessage[0]+=messageMap[1];
-            }
-            
-        if (legal2 && !((map[1][move2[0]][move2[1]] == 4) ||
-            (map[1][move2[0]][move2[1]] == 6) ||
-            (map[1][move2[0]][move2[1]] == 8))) {
-                legal2 = false;
-                errormessage[1]+=messageMap[1];
-            }
-            
-        // 非法越界
-        if (legal1 && (to1[0] <0 || to1[0]>=height || to1[1]<0 || to1[1]>=width)) {
+        if (user0Stay) { // 若是不移动，则绕过后面的检查
             legal1 = false;
-            errormessage[0]+=messageMap[2];
         }
-			
-        if (legal2 && (to2[0] <0 || to2[0]>=height || to2[1]<0 || to2[1]>=width)) {
+        if (user1Stay) {
             legal2 = false;
-            errormessage[1]+=messageMap[2];
         }
-			
+        // 起始位置并非你所有 
+        if (legal1 && ((move1[0] < 0 || move1[0] >= height ||
+                        move1[1] < 0 || move1[1] >= width)))
+        {
+            legal1 = false;
+            errormessage[0] += messageMap[1];
+        }
 
+        if (legal2 && (move2[0] < 0 || move2[0] >= height ||
+                        move2[1] < 0 || move2[1] >= width))
+        {
+            legal2 = false;
+            errormessage[1] += messageMap[1];
+        }
+        // 起始位置非法
+        if (legal1 && !((map[1][move1[0]][move1[1]] == 3) ||
+                        (map[1][move1[0]][move1[1]] == 5) ||
+                        (map[1][move1[0]][move1[1]] == 7)))
+        {
+            legal1 = false;
+            errormessage[0] += messageMap[2];
+        }
+
+        if (legal2 && !((map[1][move2[0]][move2[1]] == 4) ||
+                        (map[1][move2[0]][move2[1]] == 6) ||
+                        (map[1][move2[0]][move2[1]] == 8)))
+        {
+            legal2 = false;
+            errormessage[1] += messageMap[2];
+        }
+
+        // 非法越界
+        if (legal1 && (to1[0] < 0 || to1[0] >= height || to1[1] < 0 || to1[1] >= width)) {
+            legal1 = false;
+            errormessage[0] += messageMap[3];
+        }
+
+        if (legal2 && (to2[0] < 0 || to2[0] >= height || to2[1] < 0 || to2[1] >= width)) {
+            legal2 = false;
+            errormessage[1] += messageMap[3];
+        }
 
         // 数量不够
         if (legal1 && map[0][move1[0]][move1[1]] <= 1) {
             legal1 = false;
-            errormessage[0]+=messageMap[3];
+            errormessage[0] += messageMap[4];
         }
-            
+
         if (legal2 && map[0][move2[0]][move2[1]] <= 1) {
             legal2 = false;
-            errormessage[1]+=messageMap[3];
+            errormessage[1] += messageMap[4];
         }
-            
+
         // 移动到山上
         if (legal1 && map[1][to1[0]][to1[1]] == 1) {
             legal1 = false;
-            errormessage[0]+=messageMap[4];
+            errormessage[0] += messageMap[5];
         }
-            
+
         if (legal2 && map[1][to2[0]][to2[1]] == 1) {
             legal2 = false;
-            errormessage[1]+=messageMap[4];
+            errormessage[1] += messageMap[5];
         }
-            
     }
-	// 不移动为合法
-	if (user0Stay) legal1 = true; 
-	if (user1Stay) legal2 = true;
-    if (!legal1 && !legal2) {errorcode=2; return 2;}
-    if (!legal1)  {errorcode = 0; return 0;}
-    if (!legal2)  {errorcode = 1; return 1;}
+    // 不移动为合法
+    if (user0Stay) legal1 = true;
+    if (user1Stay) legal2 = true;
+    if (!legal1 && !legal2) { errorcode = 2; return 2;}
+    if (!legal1) { errorcode = 0; return 0; }
+    if (!legal2) { errorcode = 1; return 1; }
     int to1[] = {move1[0] + movei[move1[2]], move1[1] + movej[move1[2]]};
     int to2[] = {move2[0] + movei[move2[2]], move2[1] + movej[move2[2]]};
     // 若选择移动，则先把兵力调出，再考虑放入的问题
     if (!user0Stay) {
-        moveN[0] = map[0][move1[0]][move1[1]]-1;
-        map[0][move1[0]][move1[1]] = 1; }
+        moveN[0] = map[0][move1[0]][move1[1]] - 1;
+        map[0][move1[0]][move1[1]] = 1;
+    }
     if (!user1Stay) {
-        moveN[1] = map[0][move2[0]][move2[1]]-1;
+        moveN[1] = map[0][move2[0]][move2[1]] - 1;
         map[0][move2[0]][move2[1]] = 1;
-    } 
+    }
     if (!(
-            to1[0] == to2[0] && to1[1] == to2[1] && 
+            to1[0] == to2[0] && to1[1] == to2[1] &&
             map[1][to1[0]][to1[1]] != 0 && (!user0Stay) && (!user1Stay)))
     {
         fouser {
             int *thismove = moveAll[user];
-			if (((user == 0) && user0Stay) || (user == 1) && user1Stay) 
-				continue;
-			move(thismove, user, moveN[user]);
+            if (((user == 0) && user0Stay) || ((user == 1) && user1Stay))
+                continue;
+            move(thismove, user, moveN[user]);
         }
     }
     // 当双方同时到达一块土地或者城市，以及某一方的王城时，需被额外考虑
@@ -401,9 +427,9 @@ int Game::move(int move1[3], int move2[3],bool check=false)
     // 若为王城被进攻的情况，让增援部队先加入，再让对方进攻
     else {
         int toi = to1[0], toj = to1[1];
-        int moveN1 = moveN[0],moveN2=moveN[1];
+        int moveN1 = moveN[0], moveN2 = moveN[1];
         // int moveN[] = {moveN1, moveN2};
-        int toN = map[0][toi][toj], type=map[1][toi][toj];
+        int toN = map[0][toi][toj], type = map[1][toi][toj];
         int r1 = toN, r2 = moveN1, r3 = moveN2;
         fight(r1, r2, r3);
         bool occupy1 = r2 > 0, occupy2 = r3 > 0;
@@ -415,40 +441,70 @@ int Game::move(int move1[3], int move2[3],bool check=false)
         }
         else { // 已被某一方占据的土地
             int belong = 1 ? type % 2 == 0 : 0;
-            int defenceN=moveN[belong], enemyN = moveN[1-belong];
-            toN += defenceN ; // 先加上增援部队
+            int defenceN = moveN[belong], enemyN = moveN[1 - belong];
+            toN += defenceN; // 先加上增援部队
             bool occupy = enemyN > toN;
-            map[0][toi][toj] = abs(enemyN-toN);
+            map[0][toi][toj] = abs(enemyN - toN);
             if (occupy) {
-                if (belong == 0) {this->map[1][toi][toj] = type +1;} 
-                else { this->map[1][toi][toj] = type -1;} 
+                if (belong == 0) {
+                    this->map[1][toi][toj] = type + 1;
+                }
+                else {
+                    this->map[1][toi][toj] = type - 1;
+                }
                 // this->map[1][toi][toj] = (type +1) ? (belong == 0):(type-1);
             }
-                
-                
+
             if (occupy && type >= 7) { // 王城被攻下
                 finish = true;
-                winner = 1-belong;
+                winner = 1 - belong;
             }
         }
     }
     return 3;
 }
 
-int Game::move(Json::Value move1_, Json::Value move2_,bool check=false) {
-    int move1[3],move2[3];
-    foi(3) {
-        move1[i] = move1_[i].asInt();
-        move2[i] = move2_[i].asInt();
+int Game::move(Json::Value move1_, Json::Value move2_, bool check = false) {
+    int move1[3], move2[3];
+    bool legal1 = true, legal2 = true;
+    string errorMessage = "非法输入";
+    if (check) {
+        foi(3) {
+            try {move1[i] = move1_[i].asInt();}
+            catch(...) {legal1 = false;}
+            try {move2[i] = move2_[i].asInt();}
+            catch(...) {legal2 = false;}
+        }
+        if ((!legal1)&&(!legal2)) {
+            errormessage[0] = errorMessage; 
+            errormessage[1] = errorMessage; 
+            errorcode = 2;
+            return 2;}
+        if ((!legal1)) {
+            errormessage[0] = errorMessage; 
+            errorcode = 0;
+            return 0;
+        } 
+        if ((!legal2)) {
+            errormessage[1] = errorMessage; 
+            errorcode = 1;
+            return 1;
+        } 
+    } else {
+        foi(3) {
+            move1[i] = move1_[i].asInt();
+            move2[i] = move2_[i].asInt();
+        }
+             
     }
-    return move(move1,move2,check);
+    return move(move1, move2, check);   
 }
 
 void Game::mapCompute() {
-    memset(mapVision1,-1,sizeof(mapVision1));
-    memset(mapVision2,-1,sizeof(mapVision2));
-    memset(army,0,sizeof(army));
-    memset(land,0,sizeof(land));
+    memset(mapVision1, -1, sizeof(mapVision1));
+    memset(mapVision2, -1, sizeof(mapVision2));
+    memset(army, 0, sizeof(army));
+    memset(land, 0, sizeof(land));
 
     foi(height) foj(width) {
         int type = map[1][i][j];
@@ -457,26 +513,28 @@ void Game::mapCompute() {
             mapVision1[1][i][j] = map[1][i][j];
             mapVision2[0][i][j] = map[0][i][j];
             mapVision2[1][i][j] = map[1][i][j];
-        } else if (type >= 3) { //被占据的地方
-            if (type % 2 == 1) { // 被user0占据
+        }
+        else if (type >= 3) { //被占据的地方
+            if (type % 2 == 1){ // 被user0占据
                 army[0] += map[0][i][j];
                 ++land[0];
-                for (int i1=0;i1<9;++i1) {
+                for (int i1 = 0; i1 < 9; ++i1) {
                     int newi = i + square9i[i1], newj = j + square9j[i1];
-                        if (newi>=0 && newi<SquareHeight && newj>=0 && newj<SquareWidth) {
-                            mapVision1[0][newi][newj] = map[0][newi][newj];
-                            mapVision1[1][newi][newj] = map[1][newi][newj];    
-                        }
+                    if (newi >= 0 && newi < SquareHeight && newj >= 0 && newj < SquareWidth) {
+                        mapVision1[0][newi][newj] = map[0][newi][newj];
+                        mapVision1[1][newi][newj] = map[1][newi][newj];
+                    }
                 }
-            } else { // 被user1占据
+            }
+            else { // 被user1占据
                 army[1] += map[0][i][j];
                 ++land[1];
-                for (int i1=0;i1<9;++i1) {
+                for (int i1 = 0; i1 < 9; ++i1) {
                     int newi = i + square9i[i1], newj = j + square9j[i1];
-                        if (newi>=0 && newi<SquareHeight && newj>=0 && newj<SquareWidth) {
-                            mapVision2[0][newi][newj] = map[0][newi][newj];
-                            mapVision2[1][newi][newj] = map[1][newi][newj];  
-                        }
+                    if (newi >= 0 && newi < SquareHeight && newj >= 0 && newj < SquareWidth) {
+                        mapVision2[0][newi][newj] = map[0][newi][newj];
+                        mapVision2[1][newi][newj] = map[1][newi][newj];
+                    }
                 }
             }
         }
@@ -484,26 +542,31 @@ void Game::mapCompute() {
 }
 
 void Game::loadMap(Json::Value value) {
-    fok(2) foi(height) foj(width) 
+    fok(2) foi(height) foj(width)
         map[k][i][j] = value["map"][k][i][j].asInt();
     foi(2) foj(2)
         generals[i][j] = value["generals"][i][j].asInt();
 }
 
 void Game::printError() {
-    // errorcode: 
+    // errorcode:
     // 1 user1's error
     // 2 user2's error
     // 3 both error
-    int score[2] ;
+    int score[2];
     if (errorcode == 0) {
-        score[0] = -5; score[1] = 5;
-    } else if (errorcode == 1) {
-        score[0] = 5; score[1] = -5;
-    } else if (errorcode == 2) {
-        score[0] = -5; score[1] = -5;
+        score[0] = -5;
+        score[1] = 5;
     }
-	Json::Value output;
+    else if (errorcode == 1) {
+        score[0] = 5;
+        score[1] = -5;
+    }
+    else if (errorcode == 2) {
+        score[0] = -5;
+        score[1] = -5;
+    }
+    Json::Value output;
     output["command"] = "finish";
     output["content"]["0"] = score[0];
     output["content"]["1"] = score[1];
@@ -511,29 +574,33 @@ void Game::printError() {
     output["display"]["errorinfo"][ind(0)] = this->errormessage[0];
     output["display"]["errorinfo"][ind(1)] = this->errormessage[1];
     output["display"]["status"] = "error";
-    output["display"]["time"] = this->currenttime;   
+    output["display"]["time"] = this->currenttime;
 
-
-
-	Json::FastWriter writer;
-	cout << writer.write(output) << endl;
+    Json::FastWriter writer;
+    cout << writer.write(output) << endl;
 }
 
-void Game::printFinish() {
+void Game::printFinish()
+{
     // winner:
-    // 0: user1 
+    // 0: user1
     // 1: user2
     // 2: draw
     // -1: unknown
-    int score[2] ;
+    int score[2];
     if (winner == 0) {
-        score[0] = 5; score[1] = -5;
-    } else if (winner == 1) {
-        score[0] = -5; score[1] = 5;
-    } else if (winner == 2) {
-        score[0] = -1; score[1] = -1;
+        score[0] = 5;
+        score[1] = -5;
     }
-	Json::Value output;
+    else if (winner == 1) {
+        score[0] = -5;
+        score[1] = 5;
+    }
+    else if (winner == 2) {
+        score[0] = -1;
+        score[1] = -1;
+    }
+    Json::Value output;
     output["command"] = "finish";
     output["content"]["0"] = score[0];
     output["content"]["1"] = score[1];
@@ -548,60 +615,64 @@ void Game::printFinish() {
         output["display"]["map"][ind(k)][ind(i)][ind(j)] = this->map[k][i][j];
     }
     output["display"]["status"] = "finish";
-    output["display"]["time"] = this->currenttime;   
+    output["display"]["time"] = this->currenttime;
 
-
-
-	Json::FastWriter writer;
-	cout << writer.write(output) << endl;
+    Json::FastWriter writer;
+    cout << writer.write(output) << endl;
 }
 
 inline int visionReverse(int num1) {
     if (num1 > 2) {
         if (num1 % 2 == 0) {
-            num1 --;
-        } else {
-            num1 ++;
+            num1--;
+        }
+        else {
+            num1++;
         }
     }
     return num1;
 }
 
-int main() {
-	// freopen("debug.in","r",stdin);
-	// freopen("debug.json","w",stdout);
-	string str;
-	getline(cin, str);
-	Json::Reader reader;
-	Json::Value input,log, output;
-	reader.parse(str, input);
+int main()
+{
+    // freopen("debug.in","r",stdin);
+    // freopen("debug.json","w",stdout);
+    string str;
+    getline(cin, str);
+    Json::Reader reader;
+    Json::Value input, log, output;
+    reader.parse(str, input);
     Game game;
     output["content"]["0"]["size"][ind(0)] = SquareHeight;
     output["content"]["0"]["size"][ind(1)] = SquareWidth;
     output["content"]["1"]["size"][ind(0)] = SquareHeight;
     output["content"]["1"]["size"][ind(1)] = SquareWidth;
     log = input["log"];
-    if (log.size() == 0) {
-        // display: TODO:
+    if (log.size() == 0) { // init game
         game.initMap();
         game.mapCompute();
         output["command"] = "request";
         output["initdata"]["height"] = game.height;
         output["initdata"]["width"] = game.width;
-        output["display"]["status"] = "open";
-        output["display"]["time"] = 0;
-        output["display"]["army"][ind(0)] = 4; output["display"]["land"][ind(0)] = 1;
-        output["display"]["army"][ind(1)] = 4; output["display"]["land"][ind(1)] = 1;
+
         output["content"]["0"]["enemy"][ind(0)] = InitGeneralsNum;
         output["content"]["0"]["enemy"][ind(1)] = 1;
         output["content"]["1"]["enemy"][ind(0)] = InitGeneralsNum;
         output["content"]["1"]["enemy"][ind(1)] = 1;
+
+        output["display"]["status"] = "open";
+        output["display"]["time"] = 0;
+        output["display"]["army"][ind(0)] = 4;
+        output["display"]["land"][ind(0)] = 1;
+        output["display"]["army"][ind(1)] = 4;
+        output["display"]["land"][ind(1)] = 1;
+
         fok(2) foi(game.height) foj(game.width) {
             output["content"]["0"]["map"][ind(k)][ind(i)][ind(j)] = game.mapVision1[k][i][j];
             if (k == 1)
                 output["content"]["1"]["map"][ind(k)][ind(i)][ind(j)] = visionReverse(game.mapVision2[k][i][j]);
             else
-                output["content"]["1"]["map"][ind(k)][ind(i)][ind(j)] = game.mapVision2[k][i][j];         
+                output["content"]["1"]["map"][ind(k)][ind(i)][ind(j)] = game.mapVision2[k][i][j];
             output["initdata"]["map"][ind(k)][ind(i)][ind(j)] = game.map[k][i][j];
             output["display"]["map"][ind(k)][ind(i)][ind(j)] = game.map[k][i][j];
         }
@@ -609,41 +680,42 @@ int main() {
         output["content"]["0"]["time"] = 0;
         output["content"]["1"]["time"] = 0;
 
-        foi(2) foj(2) 
+        foi(2) foj(2)
             output["initdata"]["generals"][ind(i)][ind(j)] = game.generals[i][j];
         foi(2) {
             output["content"]["0"]["generals"][ind(i)] = game.generals[0][i];
             output["content"]["1"]["generals"][ind(i)] = game.generals[1][i];
-        } 
-    } else {
+        }
+    }
+    else { // continue
         game.loadMap(input["initdata"]);
         Json::Value opt1, opt2;
         int inputSize = input["log"].size();
-        int legalAns ;
+        int legalAns;
         output["display"]["status"] = "open";
-		for (ind i = 1; i < inputSize; i += 2) {
-			opt1 = input["log"][i]["0"]["response"];
-			opt2 = input["log"][i]["1"]["response"];
-            if (i == inputSize-1)
-                 legalAns = game.move(opt1,opt2,true);
-            else 
-                game.move(opt1,opt2);
-            ++game.currenttime ;
+        for (ind i = 1; i < inputSize; i += 2) {
+            opt1 = input["log"][i]["0"]["response"];
+            opt2 = input["log"][i]["1"]["response"];
+            if (i == inputSize - 1)
+                legalAns = game.move(opt1, opt2, true);
+            else
+                game.move(opt1, opt2);
+            ++game.currenttime;
             game.scheduleAdd();
         }
         output["display"]["time"] = game.currenttime;
-        // fixTODO: 
-        if (game.currenttime>=TTO) {
+
+        if (game.currenttime >= TTO) { // time to over
             game.finish = true;
             game.winner = 2;
             game.printFinish();
             return 0;
         }
         if (legalAns == 3) {
-            if (!game.finish ) {
+            if (!game.finish) {
                 output["command"] = "request";
                 game.mapCompute();
-                  
+
                 foi(game.height) foj(game.width) {
                     output["content"]["0"]["map"][ind(0)][ind(i)][ind(j)] = game.mapVision1[0][i][j];
                     output["content"]["0"]["map"][ind(1)][ind(i)][ind(j)] = game.mapVision1[1][i][j];
@@ -660,26 +732,24 @@ int main() {
                     output["display"]["map"][ind(k)][ind(i)][ind(j)] = game.map[k][i][j];
                 }
 
-                output["content"]["0"]["time"] = game.currenttime ;
-                output["content"]["1"]["time"] = game.currenttime ;
+                output["content"]["0"]["time"] = game.currenttime;
+                output["content"]["1"]["time"] = game.currenttime;
                 output["content"]["0"]["enemy"][ind(0)] = game.army[1];
                 output["content"]["0"]["enemy"][ind(1)] = game.land[1];
                 output["content"]["1"]["enemy"][ind(0)] = game.army[0];
                 output["content"]["1"]["enemy"][ind(1)] = game.land[0];
-                // display TODO:
-            } else {
+            }
+            else { // game is over
                 game.printFinish();
                 return 0;
             }
         }
-        else {
+        else { // error action
             game.printError();
             return 0;
         }
-
-
     }
-	Json::FastWriter writer;
-	cout << writer.write(output) << endl;
+    Json::FastWriter writer;
+    cout << writer.write(output) << endl;
     return 0;
 }

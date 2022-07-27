@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html>
+	
+
 
 <head>
 	<title></title>
@@ -225,7 +227,6 @@
 		var user = infoProvider.getPlayerID();
 		var islive = infoProvider.isLive();
 		var povallow = infoProvider.getPlayerID() == -1;
-
 		var fogDisplay = true;
 		let name = infoProvider.getPlayerNames();
 		var name0 = name[0].name;
@@ -486,7 +487,6 @@
 						let newi = i+square9i[k];
 						let newj = j+square9j[k];
 						if (!(newi<0 || newi>=height || newj<0 || newj>=width)) {
-							console.log(newi,newj,k);
 							data.fog[newi][newj] = 0;
 							data.map[0][newi][newj] = fullmap[0][newi][newj];
 							data.map[1][newi][newj] = fullmap[1][newi][newj];
@@ -499,7 +499,6 @@
 		function displayHandler(cb) {
 			timeboard.innerText = "Time: " + String(cb.time);
 			if (cb.status === "open" || cb.status === "finish") {
-				
 				redarmy.innerText = cb.army[0];
 				bluearmy.innerText = cb.army[1];
 				redland.innerText = cb.land[0];
@@ -580,3 +579,9 @@
 </body>
 
 </html>
+
+<!-- 
+Author: Tosey
+Datetime: 2022-07-27
+Github: https://github.com/Toseic/Generals-chess
+-->
