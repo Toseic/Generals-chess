@@ -232,6 +232,7 @@
 		var name0 = name[0].name;
 		var name1 = name[1].name;
 		var allname = [name0, name1];
+		var input_allow = false;
 		const movei = [-1, 1, 0, 0];
 		const movej = [0, 0, -1, 1];
 		const belonglist = ["red", "blue"];
@@ -355,6 +356,7 @@
 			}
 			if (e == 4) {
 				infoProvider.notifyPlayerMove([-1, -1, -1]);
+				input_allow = false;
 				return;
 			}
 			if (game.map[i][j].num <= 1) {
@@ -384,6 +386,7 @@
 				this.chsdAction[2] = e;
 				infoProvider.notifyPlayerMove(this.chsdAction);
 				game.refreshChosd(newi, newj);
+				input_allow = false;
 			}
 		}
 		function keypress(e) {
@@ -526,6 +529,9 @@
 
 					}
 				}
+				if (cb.status === "open") {
+					input_allow = true;
+				}
 			}
 			if (cb.status === "error") {
 				$("#messagebar").css("visibility", "visible");
@@ -570,7 +576,7 @@
 		document.onkeydown = function (event) {
 			var oEvent = event ? event : (window.event ? window.event : null);
 			var k = keypress(oEvent);
-			if (k >= 0) {
+			if (k >= 0 && input_allow) {
 				game.chooseAction(k);
 			}
 		};

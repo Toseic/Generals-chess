@@ -550,9 +550,9 @@ void Game::loadMap(Json::Value value) {
 
 void Game::printError() {
     // errorcode:
-    // 1 user1's error
-    // 2 user2's error
-    // 3 both error
+    // 0 user1's error
+    // 1 user2's error
+    // 2 both error
     int score[2];
     if (errorcode == 0) {
         score[0] = -5;
@@ -690,14 +690,35 @@ int main()
     else { // continue
         game.loadMap(input["initdata"]);
         Json::Value opt1, opt2;
+        bool verdict1, verdict2;
         int inputSize = input["log"].size();
         int legalAns;
         output["display"]["status"] = "open";
         for (ind i = 1; i < inputSize; i += 2) {
             opt1 = input["log"][i]["0"]["response"];
             opt2 = input["log"][i]["1"]["response"];
-            if (i == inputSize - 1)
-                legalAns = game.move(opt1, opt2, true);
+
+            if (i == inputSize - 1) {
+                verdict1 = strcmp(input["log"][i]["0"]["verdict"].asCString(),"OK") == 0;
+                verdict2 = strcmp(input["log"][i]["1"]["verdict"].asCString(),"OK") == 0;
+                if (!(verdict1 && verdict2)) {
+                    game.errorcode = 2;
+                    if (verdict1) game.errorcode = 1;
+                    if (verdict2) game.errorcode = 0;
+                    if (!verdict1) {
+                        game.errormessage[0] = input["log"][i]["0"]["verdict"].asString();
+                    }
+                    if (!verdict2) {
+                        game.errormessage[1] = input["log"][i]["1"]["verdict"].asString();
+                    }
+                     
+                    game.printError();
+                    return 0;
+                }    
+                legalAns = game.move(opt1, opt2, true);        
+            }
+
+                
             else
                 game.move(opt1, opt2);
             ++game.currenttime;

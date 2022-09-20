@@ -1,14 +1,12 @@
 /*  Generals-Chess cpp示例bot程序
     author: Tosey
 */
-
 #include <iostream>
 #include <cstring>
-#include "../jsoncpp/json.h"
-#define ind Json::Value::ArrayIndex
-// typedef ind int;
+#include "jsoncpp/json.h"
 
-// #include "../jsoncpp/json.h"
+#define ind Json::Value::ArrayIndex
+
 
 #define foi(n) for (int i = 0; i < n; ++i)
 #define foj(n) for (int j = 0; j < n; ++j)
@@ -25,15 +23,13 @@ int movei[] = {-1, 1, 0, 0, 0};
 int movej[] = {0, 0, -1, 1, 0};
 int square9i[9] = {
     -1, -1, -1,
-    0,  0,  0,
-    1,  1,  1
-};
+    0, 0, 0,
+    1, 1, 1};
 int square9j[9] = {
     -1, 0, 1,
     -1, 0, 1,
     -1, 0, 1
 };
-
 /*
 color:
 user1 red
@@ -54,28 +50,28 @@ map[1]: 表示方格的类型
     8: 敌方的王城
 */
 
-class Game {
+class Game
+{
 public:
     int height, width;
     int map[2][SquareHeight][SquareWidth]; // map
 
-    Game(int height_ = SquareHeight, int width_ = SquareWidth) {
+    Game(int height_ = SquareHeight, int width_ = SquareWidth)
+    {
         height = height_;
         width = width_;
         memset(map, 0, sizeof(map));
     }
 };
 
-int main() {
-    freopen("../debug.in", "r", stdin);
-    freopen("../debug.json", "w", stdout);
+int main()
+{
     string str;
     getline(cin, str);
     Json::Reader reader;
     Json::Value input,info, history, output;
     reader.parse(str, input);
     Game game;
-
     game.height = info["size"][ind(0)].asInt();
     game.width = info["size"][ind(1)].asInt();
     fok(2) foi(SquareHeight) foj(SquareWidth)
@@ -114,11 +110,14 @@ int main() {
                 // 没有重复上次的路径（来回走）
                 (game.map[0][i][j] > 1 ) &&
                 // 起始兵力足够
-                (game.map[1][i][j] == 3 || game.map[1][i][j] == 5 || game.map[1][i][j] == 7))
+                (game.map[1][i][j] == 3 || game.map[1][i][j] == 5 || game.map[1][i][j] == 7) &&
                 // 起始位置属于自己
-            {
+                (game.map[1][x][y] != 1 )
+                // 不会移动到山上
+            ){
                 moves[movenum][0] = i, moves[movenum][1] = j, moves[movenum][2] = k;
-                movenum++;    
+                movenum++;                       
+
             }
         }
     }
@@ -131,12 +130,11 @@ int main() {
     srand((unsigned)time(0));
     int index = rand() % movenum;
     Json::Value ret,ret1;
-
     ret[ind(0)] = moves[index][0];
     ret[ind(1)] = moves[index][1];
     ret[ind(2)] = moves[index][2];
     // >>>>> 你可以从这里结束修改选择方案的代码  <<<<<<
-
+    
     Json::FastWriter writer;
     ret1["response"] = ret;
     cout << writer.write(ret1) << endl;
