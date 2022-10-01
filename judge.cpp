@@ -223,11 +223,11 @@ void Game::fight(int &n1, int &n2)
 void Game::fight(int &f1, int &n1, int &n2) {
     int f1_ = f1, n1_ = n1, n2_ = n2;
     int numb[] = {f1_, n1_, n2_};
-    int point = 1 ? n1_ >= n2_ : 2;
-    int lef1 = abs(numb[point] - f1_);
-    int lef2 = abs(lef1 - numb[3 - point]);
-    int Npoint = point ? numb[point] > f1_ : 0;
-    Npoint = Npoint ? lef1 > numb[3 - point] : 0;
+    int first_person = n1_ >= n2_ ? 1 : 2;
+    int lef1 = abs(numb[first_person] - f1_);
+    int lef2 = abs(lef1 - numb[3 - first_person]);
+    int Npoint = numb[first_person] > f1_ ?first_person  : 0;
+    Npoint = lef1 > numb[3 - first_person] ? Npoint : 0;
     int ret[] = {0, 0, 0};
     ret[Npoint] = lef2;
     f1 = ret[0];
