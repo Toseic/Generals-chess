@@ -220,6 +220,8 @@ void Game::fight(int &n1, int &n2)
     }
 }
 
+// 此函数被用于处理当双方同时进攻无人占领的城市时的情况
+// 双方兵力多者先战斗，少者后战斗
 void Game::fight(int &f1, int &n1, int &n2) {
     int f1_ = f1, n1_ = n1, n2_ = n2;
     int numb[] = {f1_, n1_, n2_};
@@ -235,6 +237,7 @@ void Game::fight(int &f1, int &n1, int &n2) {
     n2 = ret[2];
 }
 
+// 定时增加兵力
 void Game::scheduleAdd() {
     if (currenttime % squareScheduleAddTime == 0) {
         foi(height) foj(width) if (map[1][i][j] >= 3)++ map[0][i][j];
@@ -244,6 +247,8 @@ void Game::scheduleAdd() {
     }
 }
 
+// 移动士兵，情况：
+// 双方行动不相互干扰，在此前已完成合法性检查
 void Game::move(int move[3], int user, int moveN) {
     int toi = move[0] + movei[move[2]], toj = move[1] + movej[move[2]];
     int toN = this->map[0][toi][toj], type = this->map[1][toi][toj];
@@ -286,6 +291,9 @@ void Game::move(int move[3], int user, int moveN) {
 
 }
 
+// 移动士兵，情况：
+// 总处理函数，在双方不相互干扰时，使用另一个move分别处理各人
+// 在相互干扰时，在此函数中完成处理
 int Game::move(int move1[3], int move2[3], bool check = false)
 {
     /*  return 3 OK
@@ -395,9 +403,11 @@ int Game::move(int move1[3], int move2[3], bool check = false)
     // 不移动为合法
     if (user0Stay) legal1 = true;
     if (user1Stay) legal2 = true;
+    // 处理errorcode
     if (!legal1 && !legal2) { errorcode = 2; return 2;}
     if (!legal1) { errorcode = 0; return 0; }
     if (!legal2) { errorcode = 1; return 1; }
+    //   <<<<< 在此以后运行时已被视为合法 >>>>>
     int to1[] = {move1[0] + movei[move1[2]], move1[1] + movej[move1[2]]};
     int to2[] = {move2[0] + movei[move2[2]], move2[1] + movej[move2[2]]};
     // 若选择移动，则先把兵力调出，再考虑放入的问题
@@ -409,6 +419,8 @@ int Game::move(int move1[3], int move2[3], bool check = false)
         moveN[1] = map[0][move2[0]][move2[1]] - 1;
         map[0][move2[0]][move2[1]] = 1;
     }
+    // 此判断为：若终点重合，而且双方均不选择不动，则由后面的else处理
+    // 这里的type==0的情况可能有点问题 FIXME:
     if (!(
             to1[0] == to2[0] && to1[1] == to2[1] &&
             map[1][to1[0]][to1[1]] != 0 && (!user0Stay) && (!user1Stay)))
@@ -433,14 +445,14 @@ int Game::move(int move1[3], int move2[3], bool check = false)
         int r1 = toN, r2 = moveN1, r3 = moveN2;
         fight(r1, r2, r3);
         bool occupy1 = r2 > 0, occupy2 = r3 > 0;
-        if (type == 2) {
+        if (type == 2) { // 共同攻击未被占领的城市
             map[0][toi][toj] = r1 + r2 + r3;
             if (occupy1 || occupy2) {
-                map[1][toi][toj] = 5 ? occupy1 : 6;
+                map[1][toi][toj] = occupy1 ? 5 : 6;
             }
-        }
+        } 
         else { // 已被某一方占据的土地
-            int belong = 1 ? type % 2 == 0 : 0;
+            int belong = type % 2 == 0 ? 1 : 0;
             int defenceN = moveN[belong], enemyN = moveN[1 - belong];
             toN += defenceN; // 先加上增援部队
             bool occupy = enemyN > toN;
@@ -464,6 +476,7 @@ int Game::move(int move1[3], int move2[3], bool check = false)
     return 3;
 }
 
+// 将json格式转换，而且做一些安全检查
 int Game::move(Json::Value move1_, Json::Value move2_, bool check = false) {
     int move1[3], move2[3];
     bool legal1 = true, legal2 = true;
@@ -500,6 +513,7 @@ int Game::move(Json::Value move1_, Json::Value move2_, bool check = false) {
     return move(move1, move2, check);   
 }
 
+// 计算双方能看到的视野，并且计算双方兵力，领土
 void Game::mapCompute() {
     memset(mapVision1, -1, sizeof(mapVision1));
     memset(mapVision2, -1, sizeof(mapVision2));
@@ -541,6 +555,7 @@ void Game::mapCompute() {
     }
 }
 
+// 从init数据中重建地图
 void Game::loadMap(Json::Value value) {
     fok(2) foi(height) foj(width)
         map[k][i][j] = value["map"][k][i][j].asInt();
@@ -548,6 +563,7 @@ void Game::loadMap(Json::Value value) {
         generals[i][j] = value["generals"][i][j].asInt();
 }
 
+// 当有错误时，这个函数负责处理回传的数据
 void Game::printError() {
     // errorcode:
     // 0 user1's error
@@ -580,6 +596,7 @@ void Game::printError() {
     cout << writer.write(output) << endl;
 }
 
+// 游戏结束时负责处理回传的数据
 void Game::printFinish()
 {
     // winner:
@@ -621,6 +638,7 @@ void Game::printFinish()
     cout << writer.write(output) << endl;
 }
 
+// 第二个玩家在获取数据时，数据需要被翻转为他自己是第一个玩家的视角
 inline int visionReverse(int num1) {
     if (num1 > 2) {
         if (num1 % 2 == 0) {
@@ -698,7 +716,7 @@ int main()
             opt1 = input["log"][i]["0"]["response"];
             opt2 = input["log"][i]["1"]["response"];
 
-            if (i == inputSize - 1) {
+            if (i == inputSize - 1) { // 最后一次移动，需要安全检查
                 verdict1 = strcmp(input["log"][i]["0"]["verdict"].asCString(),"OK") == 0;
                 verdict2 = strcmp(input["log"][i]["1"]["verdict"].asCString(),"OK") == 0;
                 if (!(verdict1 && verdict2)) {
@@ -717,10 +735,9 @@ int main()
                 }    
                 legalAns = game.move(opt1, opt2, true);        
             }
-
-                
-            else
+            else { // 之前检查过了是否安全
                 game.move(opt1, opt2);
+            }
             ++game.currenttime;
             game.scheduleAdd();
         }
