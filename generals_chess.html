@@ -243,6 +243,7 @@
 		class cell {
 			constructor(x, y, n2 = -1) {
 				this.__type = n2;
+				this.__num = -1;
 				this.__element = document.createElement("td");
 				this.focusOn = function () {
 					this.addClass("chosd");
@@ -312,11 +313,12 @@
 					this.__element.classList.remove(x);
 			}
 			set num(x) {
-				if (x > 0)
+				this.__num = x;
+				if (x > 0 || (x == 0 && (this.__type >= 2)))
 					this.__element.innerHTML = x.toString();
 			}
 			get num() {
-				return this.__element.innerHTML;
+				return this.__num;
 			}
 			setfog = function (bol) {
 				if (bol == 0 || bol == false) {
@@ -500,6 +502,7 @@
 			return data;
 		}
 		function displayHandler(cb) {
+			console.log(cb); // dbg
 			timeboard.innerText = "Time: " + String(cb.time);
 			if (cb.status === "open" || cb.status === "finish") {
 				redarmy.innerText = cb.army[0];
@@ -556,7 +559,7 @@
 				if (winner == 2) {
 					messagebar.innerHTML = `<h2>Time to over</h2>平局`;
 				} else if (winner == 0 || winner == 1) {
-					messagebar.innerHTML = `<h2>Game over</h2>winner: ${rwc(allname[winner], winner)}`;
+					messagebar.innerHTML = `<h2>Game is over</h2>winner: ${rwc(allname[winner], winner)}`;
 				} else {
 					messagebar.innerHTML = `错误情况`;
 				}
