@@ -15,9 +15,9 @@
 #define fouser for (int user = 0; user < 2; ++user)
 
 using namespace std;
-const int SquareHeight = 16;
-const int SquareWidth = 16;
+
 int InitGeneralsNum = 4;
+const int defaultsize = 25;
 int moves[1100][3];
 int movei[] = {-1, 1, 0, 0, 0};
 int movej[] = {0, 0, -1, 1, 0};
@@ -54,9 +54,9 @@ class Game
 {
 public:
     int height, width;
-    int map[2][SquareHeight][SquareWidth]; // map
+    int map[2][defaultsize][defaultsize]; // map
 
-    Game(int height_ = SquareHeight, int width_ = SquareWidth)
+    Game(int height_ = defaultsize, int width_ = defaultsize)
     {
         height = height_;
         width = width_;
@@ -66,15 +66,19 @@ public:
 
 int main()
 {
+    // freopen("debug.in","r",stdin);
+
     string str;
     getline(cin, str);
     Json::Reader reader;
     Json::Value input,info, history, output;
     reader.parse(str, input);
     Game game;
+    info = input["requests"][input["requests"].size()-1];
     game.height = info["size"][ind(0)].asInt();
     game.width = info["size"][ind(1)].asInt();
-    fok(2) foi(SquareHeight) foj(SquareWidth)
+
+    fok(2) foi(game.height) foj(game.width)
     {
         game.map[k][i][j] = info["map"][ind(k)][ind(i)][ind(j)].asInt();
     }

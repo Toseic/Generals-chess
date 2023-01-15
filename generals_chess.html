@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-	
+
 
 
 <head>
@@ -173,11 +173,7 @@
 
 		@font-face {
 			font-family: Quicksand;
-			/* src: url('https://generals.io/Quicksand-Regular.otf') */
-			/* src: url('https://filip5336.github.io/Fonty/Quicksand-Regular.otf') */
 			src: url('Generals-chess/Quicksand-Regular.otf')
-				/* https://toseic.github.io/font/Quicksand-Regular.otf */
-				/* src: url('https://github.com/Toseic/Generals-chess/blob/main/font/Quicksand-Regular.otf') */
 		}
 	</style>
 </head>
@@ -218,17 +214,11 @@
 	<script src="player_api.js"></script>
 	<script>
 
-		// console.log(JSON.parse(infoProvider.getMatchInitData()));
-		// var height = initData.height;
-		// var width = initData.width;
-		var height = 16;
-		var width = 16;
-		var game = {};
 		var user = infoProvider.getPlayerID();
 		var islive = infoProvider.isLive();
 		var povallow = infoProvider.getPlayerID() == -1;
-		var fogDisplay = true;
 		let name = infoProvider.getPlayerNames();
+
 		var name0 = name[0].name;
 		var name1 = name[1].name;
 		var allname = [name0, name1];
@@ -236,10 +226,16 @@
 		const movei = [-1, 1, 0, 0];
 		const movej = [0, 0, -1, 1];
 		const belonglist = ["red", "blue"];
+		var fogDisplay = true;
+
+		var game = {};
 		game.map = [];
 		game.chsdAction = [-1, -1, -1];
+		game.firstinit = false;
+
 		reduser.innerText = name0;
 		blueuser.innerText = name1;
+
 		class cell {
 			constructor(x, y, n2 = -1) {
 				this.__type = n2;
@@ -275,10 +271,12 @@
 						break;
 					case 1:
 						this.addClass("mountain");
+						this.delClass("city");
 						this.delClass("red");
 						this.delClass("blue");
 						break;
 					case 2:
+						this.delClass("mountain");
 						this.addClass("city");
 						this.delClass("red");
 						this.delClass("blue");
@@ -289,6 +287,7 @@
 						break;
 					case 5: case 6:
 						this.addClass("city");
+						this.delClass("mountain");
 						this.addClass(belonglist[1 - x % 2]);
 						this.delClass(belonglist[x % 2]);
 						break;
@@ -298,6 +297,7 @@
 						this.delClass(belonglist[x % 2]);
 						break;
 					default:
+						console.log("error type: ",x)
 						throw 'error type';
 
 				}
@@ -334,9 +334,8 @@
 			}
 		}
 
-
 		game.refreshChosd = function (x, y) {
-			if (x < 0 || y < 0 || x >= height || y > width)
+			if (x < 0 || y < 0 || x >= game.height || y > game.width)
 				throw "error coord";
 			if (this.chsdAction[0] != -1) {
 				this.map[this.chsdAction[0]][this.chsdAction[1]].delClass("chosd");
@@ -344,6 +343,7 @@
 			this.chsdAction = [x, y, -1];
 			this.map[x][y].addClass("chosd");
 		}
+
 		game.chooseAction = function (e) {
 			var legalposition = true;
 			var i = this.chsdAction[0];
@@ -376,7 +376,7 @@
 			}
 			var newi = i + movei[e];
 			var newj = j + movej[e];
-			if (newi < 0 || newi >= height || newj < 0 || newj >= width) {
+			if (newi < 0 || newi >= game.height || newj < 0 || newj >= game.width) {
 				legalposition = false;
 				return;
 			}
@@ -391,6 +391,7 @@
 				input_allow = false;
 			}
 		}
+
 		function keypress(e) {
 			var direction = -1;
 			switch (e.keyCode) {
@@ -419,17 +420,6 @@
 			return direction;
 		}
 
-		for (let i = 0; i < height; ++i) {
-			let er = [];
-			let line = document.createElement("tr");
-			for (let j = 0; j < width; ++j) {
-				let c = new cell(i, j);
-				er.push(c);
-				line.appendChild(c.element);
-			}
-			game.map.push(er);
-			document.getElementById("chessDisplay").appendChild(line);
-		}
 		function rwc(e, user) {
 			if (user == 0) {
 				return `<div style="color:red;">${e}</div>`;
@@ -437,9 +427,10 @@
 				return `<div style="color:blue;">${e}</div>`;
 			}
 		}
-		function foguserJudge(foguser,type) {
+
+		function foguserJudge(foguser, type) {
 			if (foguser == 0 || foguser == 1) {
-				if (type == 3+foguser || type == 5+foguser || type == 7+foguser) {
+				if (type == 3 + foguser || type == 5 + foguser || type == 7 + foguser) {
 					return true;
 				}
 			} else {
@@ -449,18 +440,19 @@
 			}
 			return false;
 		}
+
 		function dataCompute(fullmap) {
 			var pov0 = $("#pov0").is(':checked');
 			var pov1 = $("#pov1").is(':checked');
 			const square9i = [
-				-1,-1,-1,
-				0 ,0 ,0,
-				1 ,1 ,1
+				-1, -1, -1,
+				0, 0, 0,
+				1, 1, 1
 			];
 			const square9j = [
-				-1,0,1,
-				-1,0,1,
-				-1,0,1,
+				-1, 0, 1,
+				-1, 0, 1,
+				-1, 0, 1,
 			];
 			var data = {};
 
@@ -471,51 +463,81 @@
 			}
 			var foguser;
 			data.map = [];
-			data.map[0] = Array.from({length:height},()=>Array(width).fill(0));
-			data.map[1] = Array.from({length:height},()=>Array(width).fill(-1));
+			data.map[0] = Array.from({ length: game.height }, () => Array(game.width).fill(0));
+			data.map[1] = Array.from({ length: game.height }, () => Array(game.width).fill(-1));
 			// data.map[0] = map0; data.map[1] = map1;
-			data.fog = Array.from({length:height},()=>Array(width).fill(1));
+			data.fog = Array.from({ length: game.height }, () => Array(game.width).fill(1));
 			if (!povallow) foguser = user;
 			else if (pov0 && pov1) foguser = 2;
 			else if (pov0) foguser = 0;
 			else if (pov1) foguser = 1;
 			fogDisplay = true;
 
-			for (let i = 0; i < height; ++i) { for (let j = 0; j < width; ++j) {
-				var num = fullmap[0][i][j];
-				var type = fullmap[1][i][j];
-				if (type == 1) {
-					data.map[0][i][j] = 0;
-					data.map[1][i][j] = 1;
-				} else if (foguserJudge(foguser,type)) {
-					for (let k=0;k<9;++k) {
-						let newi = i+square9i[k];
-						let newj = j+square9j[k];
-						if (!(newi<0 || newi>=height || newj<0 || newj>=width)) {
-							data.fog[newi][newj] = 0;
-							data.map[0][newi][newj] = fullmap[0][newi][newj];
-							data.map[1][newi][newj] = fullmap[1][newi][newj];
+			for (let i = 0; i < game.height; ++i) {
+				for (let j = 0; j < game.width; ++j) {
+					var type = fullmap[1][i][j];
+					if (type == 2 || type == 5 || type == 6) {
+						data.map[0][i][j] = 0;
+						data.map[1][i][j] = 1;
+					}
+				}				
+			}
+
+
+			for (let i = 0; i < game.height; ++i) {
+				for (let j = 0; j < game.width; ++j) {
+					var num = fullmap[0][i][j];
+					var type = fullmap[1][i][j];
+					if (type == 1) {
+						data.map[0][i][j] = 0;
+						data.map[1][i][j] = 1;
+					} else if (foguserJudge(foguser, type)) {
+						for (let k = 0; k < 9; ++k) {
+							let newi = i + square9i[k];
+							let newj = j + square9j[k];
+							if (!(newi < 0 || newi >= game.height || newj < 0 || newj >= game.width)) {
+								data.fog[newi][newj] = 0;
+								data.map[0][newi][newj] = fullmap[0][newi][newj];
+								data.map[1][newi][newj] = fullmap[1][newi][newj];
+							}
 						}
 					}
-				}
-			}}
+				} 
+			}
+			
 			return data;
 		}
+
 		function displayHandler(cb) {
-			console.log(cb); // dbg
 			timeboard.innerText = "Time: " + String(cb.time);
 			if (cb.status === "open" || cb.status === "finish") {
 				redarmy.innerText = cb.army[0];
 				bluearmy.innerText = cb.army[1];
 				redland.innerText = cb.land[0];
 				blueland.innerText = cb.land[1];
+
 				$("#messagebar").css("visibility", "hidden");
+
+				if (!game.firstinit) {
+					try {
+						game.initMapSheet(cb.size[0], cb.size[1]);
+					} catch (err) { // 此处为了兼容没有cb.size[]的旧版本数据
+						console.log("catch error: Maybe you are using an record file with old type.");
+						game.initMapSheet(16, 16);
+					}
+
+					game.firstinit = true;
+				}
+				// console.log(cb.map);
 				var showdata = dataCompute(cb.map);
-				for (let i = 0; i < height; ++i) {
-					for (let j = 0; j < width; ++j) {
+				// console.log(showdata);
+
+				for (let i = 0; i < game.height; ++i) {
+					for (let j = 0; j < game.width; ++j) {
 						game.map[i][j].num = showdata.map[0][i][j];
 						// console.log(i,j);
 						var type_ = showdata.map[1][i][j];
+						// console.log(i,j,type_);
 						if (fogDisplay) {
 							game.map[i][j].setfog(showdata.fog[i][j]);
 							game.map[i][j].type = -1;
@@ -523,7 +545,7 @@
 								game.map[i][j].type = type_;
 							}
 						} else {
-							if (!povallow && (type_ - user == 7)) {
+							if (!povallow && ((type_ - user) == 7)) {
 								game.refreshChosd(i, j);
 							}
 							game.map[i][j].setfog(false);
@@ -566,6 +588,24 @@
 
 			}
 		}
+
+		game.initMapSheet = function (height_, width_) {
+			game.height = height_;
+			game.width = width_;
+			for (let i = 0; i < height_; ++i) {
+				let er = [];
+				let line = document.createElement("tr");
+				for (let j = 0; j < width_; ++j) {
+					let c = new cell(i, j);
+					er.push(c);
+					line.appendChild(c.element);
+				}
+				game.map.push(er);
+				document.getElementById("chessDisplay").appendChild(line);
+			}
+		}
+
+		// game.initMapSheet(height, width);
 		infoProvider.setReadFullLogCallback(function (log) {
 			if (log.output && log.output.display)
 				displayHandler(log.output.display);
