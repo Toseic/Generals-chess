@@ -5,8 +5,8 @@ Generals chess 将军棋
 
 `judge.cpp` ：裁判程序
 
-`generals_chess.html` ：前端界面程序
+`html/generals_chess.html` ：前端界面程序
 
-`info.html` ：用于详情展示界面
+`html/info.html` ：用于详情展示界面
 
-`/botzone/` ：本地实现的一个简陋的botzone回合机制，用于debug
+`botzone/` ：本地实现的一个简陋的botzone回合机制，用于debug
