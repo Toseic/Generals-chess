@@ -37,7 +37,8 @@ const int sizeHighBond = 18;
 const int cityArmyLowBond = 40;
 const int cityArmyHighBond = 50;
 
-const bool NOSCORECHANGE = true;
+// 游戏结束后是否判分数
+const bool NOSCORECHANGE = false;
 
 // c++ 11
 default_random_engine randeng((unsigned)time(NULL));
